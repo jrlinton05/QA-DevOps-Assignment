@@ -1,6 +1,13 @@
 [project]
 name = "qa-devops"
 version = "0.1.0"
-description = "Add your description here"
+description = "Simple Web App for Completing the Software Engineering and DevOps Assignment with QA"
 requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+    "flask",
+    "gunicorn",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tst"]
