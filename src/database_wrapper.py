@@ -18,7 +18,6 @@ def connect_to_db():
 
 
 def create_tables():
-    global connection
     connect_to_db()
     if connection is None:
         logger.error("Attempted to create tables but database connection could not be formed")
@@ -34,7 +33,6 @@ def create_tables():
 
 
 def get_channel_data(channel_id):
-    global connection
     connect_to_db()
     if connection is None:
         logger.error("Attempted to fetch channel data but database connection could not be formed")
