@@ -6,6 +6,8 @@ requires-python = ">=3.9"
 dependencies = [
     "flask",
     "gunicorn",
+    "psycopg2-binary",
+    "python-dotenv"
 ]
 
 [tool.pytest.ini_options]
