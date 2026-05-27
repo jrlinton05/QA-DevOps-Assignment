@@ -124,3 +124,58 @@ def test_database_connection_exception_raised_when_get_all_channels_cannot_find_
 
     with pytest.raises(DatabaseConnectionException):
         database_wrapper.get_all_channels()
+
+
+def test_get_all_channel_names_returns_single_value(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("DAZN",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_all_channel_names()
+
+    assert result == [("DAZN",)]
+    mock_logger.info.assert_called_with("Found the following channel names in the database: [('DAZN',)]")
+
+
+def test_get_all_channel_names_returns_multiple_values(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("DAZN",), ("HBO Max",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_all_channel_names()
+
+    assert result == [("DAZN",), ("HBO Max",)]
+    mock_logger.info.assert_called_with("Found the following channel names in the database: [('DAZN',), ('HBO Max',)]")
+
+
+def test_get_all_channel_names_when_database_is_empty(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = []
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_all_channel_names()
+
+    assert result == []
+    mock_logger.warning.assert_called_with("No channel names were found in the database")
+
+
+def test_database_connection_exception_raised_when_get_all_channel_names_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.get_all_channel_names()
