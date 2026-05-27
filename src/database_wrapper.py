@@ -2,7 +2,8 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 from logging_config import logger
-from constants import CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA
+from schemas.constants import CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA
+from schemas.exceptions import DatabaseConnectionException
 
 connection = None
 
@@ -21,7 +22,7 @@ def create_tables():
     connect_to_db()
     if connection is None:
         logger.error("Attempted to create tables but database connection could not be formed")
-        return
+        raise DatabaseConnectionException
     try:
         with connection:
             with connection.cursor() as cursor:
@@ -36,7 +37,7 @@ def get_channel_data(channel_id):
     connect_to_db()
     if connection is None:
         logger.error("Attempted to fetch channel data but database connection could not be formed")
-        return
+        raise DatabaseConnectionException
     try:
         with connection:
             with connection.cursor() as cursor:

@@ -1,6 +1,8 @@
 import database_wrapper
 import pytest
 
+from schemas.exceptions import DatabaseConnectionException
+
 
 @pytest.fixture(autouse=True)
 def setup():
@@ -18,7 +20,7 @@ def test_connect_to_db(mocker):
     mock_logger.info.assert_called_once_with("Connected to database successfully")
 
 
-def test_exception_thrown_when_connect_to_db_fails(mocker):
+def test_exception_raised_when_connect_to_db_fails(mocker):
     mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
     mock_logger = mocker.patch("database_wrapper.logger")
 
@@ -58,3 +60,13 @@ def test_get_channel_data_when_channel_does_not_exist(mocker):
 
     assert result is None
     mock_logger.warning.assert_called_with("No data found in table for channel_id: 1")
+
+
+def test_database_connection_exception_raised_when_get_channel_data_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.get_channel_data(1)
+
+    mock_logger.error.assert_called_with("Attempted to fetch channel data but database connection could not be formed")
