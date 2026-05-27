@@ -2,7 +2,7 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 from logging_config import logger
-from schemas.constants import CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA
+from schemas.constants import CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA, GET_ALL_CHANNELS
 from schemas.exceptions import DatabaseConnectionException
 
 connection = None
@@ -51,6 +51,25 @@ def get_channel_data(channel_id):
                 return data[1], data[2]
     except Exception as e:
         logger.error(f"Failed to fetch channel data for channel_id {channel_id}: {e}")
+
+
+def get_all_channels():
+    connect_to_db()
+    if connection is None:
+        logger.error("Attempted to fetch all channels but database connection could not be formed")
+        raise DatabaseConnectionException
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(GET_ALL_CHANNELS)
+                data = cursor.fetchall()
+                if not data:
+                    logger.warning("No channels were found in the database")
+                else:
+                    logger.info(f"Found channels in the database: {data}")
+                return data
+    except Exception as e:
+        logger.error(f"Failed to fetch channel data: {e}")
 
 
 load_dotenv()
