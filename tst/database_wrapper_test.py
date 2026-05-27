@@ -24,7 +24,8 @@ def test_exception_raised_when_connect_to_db_fails(mocker):
     mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
     mock_logger = mocker.patch("database_wrapper.logger")
 
-    database_wrapper.connect_to_db()
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.connect_to_db()
 
     assert database_wrapper.connection is None
     mock_logger.error.assert_called_once_with("Failed to connect to database: connection failed")
@@ -34,7 +35,7 @@ def test_get_channel_data(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
     mock_cursor = mocker.MagicMock()
-    mock_cursor.fetchone.return_value = (1, "DAZN", "£24.99")
+    mock_cursor.fetchone.return_value = ("DAZN", "£24.99")
 
     mock_connection = mocker.MagicMock()
     mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
@@ -64,12 +65,9 @@ def test_get_channel_data_when_channel_does_not_exist(mocker):
 
 def test_database_connection_exception_raised_when_get_channel_data_cannot_find_connection(mocker):
     mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
-    mock_logger = mocker.patch("database_wrapper.logger")
 
     with pytest.raises(DatabaseConnectionException):
         database_wrapper.get_channel_data(1)
-
-    mock_logger.error.assert_called_with("Attempted to fetch channel data but database connection could not be formed")
 
 
 def test_get_all_channels_returns_single_value(mocker):
@@ -123,9 +121,6 @@ def test_get_all_channels_when_database_is_empty(mocker):
 
 def test_database_connection_exception_raised_when_get_all_channels_cannot_find_connection(mocker):
     mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
-    mock_logger = mocker.patch("database_wrapper.logger")
 
     with pytest.raises(DatabaseConnectionException):
         database_wrapper.get_all_channels()
-
-    mock_logger.error.assert_called_with("Attempted to fetch all channels but database connection could not be formed")
