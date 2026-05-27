@@ -1,7 +1,8 @@
 import database_wrapper
 import pytest
 
-from schemas.exceptions import DatabaseConnectionException
+from schemas.constants import ADD_CHANNEL
+from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException, InvalidArgumentException
 
 
 @pytest.fixture(autouse=True)
@@ -35,7 +36,7 @@ def test_get_channel_data(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
     mock_cursor = mocker.MagicMock()
-    mock_cursor.fetchone.return_value = ("DAZN", "£24.99")
+    mock_cursor.fetchone.return_value = ("DAZN", "24.99")
 
     mock_connection = mocker.MagicMock()
     mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
@@ -43,8 +44,8 @@ def test_get_channel_data(mocker):
 
     result = database_wrapper.get_channel_data(1)
 
-    assert result == ("DAZN", "£24.99")
-    mock_logger.info.assert_called_with("Returned data for channel_id 1: channel_name - DAZN, channel_price: £24.99")
+    assert result == ("DAZN", "24.99")
+    mock_logger.info.assert_called_with("Returned data for channel_id 1: channel_name - DAZN, channel_price: 24.99")
 
 
 def test_get_channel_data_when_channel_does_not_exist(mocker):
@@ -74,7 +75,7 @@ def test_get_all_channels_returns_single_value(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
     mock_cursor = mocker.MagicMock()
-    mock_cursor.fetchall.return_value = [(1, "DAZN", "£24.99")]
+    mock_cursor.fetchall.return_value = [(1, "DAZN", "24.99")]
 
     mock_connection = mocker.MagicMock()
     mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
@@ -82,15 +83,15 @@ def test_get_all_channels_returns_single_value(mocker):
 
     result = database_wrapper.get_all_channels()
 
-    assert result == [(1, "DAZN", "£24.99")]
-    mock_logger.info.assert_called_with("Found channels in the database: [(1, 'DAZN', '£24.99')]")
+    assert result == [(1, "DAZN", "24.99")]
+    mock_logger.info.assert_called_with("Found channels in the database: [(1, 'DAZN', '24.99')]")
 
 
 def test_get_all_channels_returns_multiple_values(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
     mock_cursor = mocker.MagicMock()
-    mock_cursor.fetchall.return_value = [(1, "DAZN", "£24.99"), (2, "HBO Max", "£8.99")]
+    mock_cursor.fetchall.return_value = [(1, "DAZN", "24.99"), (2, "HBO Max", "8.99")]
 
     mock_connection = mocker.MagicMock()
     mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
@@ -98,9 +99,9 @@ def test_get_all_channels_returns_multiple_values(mocker):
 
     result = database_wrapper.get_all_channels()
 
-    assert result == [(1, "DAZN", "£24.99"), (2, "HBO Max", "£8.99")]
+    assert result == [(1, "DAZN", "24.99"), (2, "HBO Max", "8.99")]
     mock_logger.info.assert_called_with(
-        "Found channels in the database: [(1, 'DAZN', '£24.99'), (2, 'HBO Max', '£8.99')]")
+        "Found channels in the database: [(1, 'DAZN', '24.99'), (2, 'HBO Max', '8.99')]")
 
 
 def test_get_all_channels_when_database_is_empty(mocker):
@@ -138,8 +139,8 @@ def test_get_all_channel_names_returns_single_value(mocker):
 
     result = database_wrapper.get_all_channel_names()
 
-    assert result == [("DAZN",)]
-    mock_logger.info.assert_called_with("Found the following channel names in the database: [('DAZN',)]")
+    assert result == ["DAZN"]
+    mock_logger.info.assert_called_with("Found the following channel names in the database: ['DAZN']")
 
 
 def test_get_all_channel_names_returns_multiple_values(mocker):
@@ -154,8 +155,8 @@ def test_get_all_channel_names_returns_multiple_values(mocker):
 
     result = database_wrapper.get_all_channel_names()
 
-    assert result == [("DAZN",), ("HBO Max",)]
-    mock_logger.info.assert_called_with("Found the following channel names in the database: [('DAZN',), ('HBO Max',)]")
+    assert result == ["DAZN", "HBO Max"]
+    mock_logger.info.assert_called_with("Found the following channel names in the database: ['DAZN', 'HBO Max']")
 
 
 def test_get_all_channel_names_when_database_is_empty(mocker):
@@ -179,3 +180,109 @@ def test_database_connection_exception_raised_when_get_all_channel_names_cannot_
 
     with pytest.raises(DatabaseConnectionException):
         database_wrapper.get_all_channel_names()
+
+
+def test_add_new_channel(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("Existing Channel",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.add_new_channel("DAZN", "24.99")
+
+    mock_cursor.execute.assert_called_with(ADD_CHANNEL, ("DAZN", "24.99"))
+
+
+def test_add_new_channel_with_free_channel(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("Existing Channel",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.add_new_channel("DAZN", "0.00")
+
+    mock_cursor.execute.assert_called_with(ADD_CHANNEL, ("DAZN", "0.00"))
+
+
+def test_add_new_channel_with_price_to_one_decimal_place(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("Existing Channel",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.add_new_channel("DAZN", "9.9")
+
+    mock_cursor.execute.assert_called_with(ADD_CHANNEL, ("DAZN", "9.90"))
+
+
+def test_add_new_channel_with_price_without_decimal(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("Existing Channel",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.add_new_channel("DAZN", "9")
+
+    mock_cursor.execute.assert_called_with(ADD_CHANNEL, ("DAZN", "9.00"))
+
+
+def test_add_new_channel_raises_exception_when_name_is_empty():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_channel("", "24.99")
+
+
+def test_add_new_channel_raises_exception_when_name_exceeds_max_length():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_channel("A" * 101, "24.99")
+
+
+def test_add_new_channel_raises_exception_when_price_is_empty():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_channel("DAZN", "")
+
+
+def test_add_new_channel_raises_exception_when_price_exceeds_max_length():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_channel("DAZN", "9" * 21)
+
+
+def test_add_new_channel_raises_exception_when_price_is_not_a_number():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_channel("DAZN", "abc")
+
+
+def test_add_new_channel_raises_exception_when_price_is_negative():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_channel("DAZN", "-5.99")
+
+
+def test_add_new_channel_raises_exception_when_price_has_more_than_two_decimal_places():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_channel("DAZN", "9.999")
+
+
+def test_add_new_channel_raises_exception_when_name_already_exists(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("DAZN",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    with pytest.raises(NameAlreadyExistsException):
+        database_wrapper.add_new_channel("DAZN", "24.99")
+
+
+def test_database_connection_exception_raised_when_add_new_channel_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.add_new_channel("DAZN", "24.99")
