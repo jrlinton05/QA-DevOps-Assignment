@@ -1,7 +1,7 @@
 import database_wrapper
 import pytest
 
-from schemas.constants import ADD_CHANNEL
+from schemas.constants import ADD_CHANNEL, UPDATE_CHANNEL
 from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException, InvalidArgumentException
 
 
@@ -286,3 +286,113 @@ def test_database_connection_exception_raised_when_add_new_channel_cannot_find_c
 
     with pytest.raises(DatabaseConnectionException):
         database_wrapper.add_new_channel("DAZN", "24.99")
+
+
+def test_update_channel_details(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.rowcount = 1
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.update_channel_details(1, "DAZN", "24.99")
+
+    mock_cursor.execute.assert_called_with(UPDATE_CHANNEL, ("DAZN", "24.99", 1))
+
+
+def test_update_channel_details_with_free_channel(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.rowcount = 1
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.update_channel_details(1, "DAZN", "0.00")
+
+    mock_cursor.execute.assert_called_with(UPDATE_CHANNEL, ("DAZN", "0.00", 1))
+
+
+def test_update_channel_details_with_price_to_one_decimal_place(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.rowcount = 1
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.update_channel_details(1, "DAZN", "9.9")
+
+    mock_cursor.execute.assert_called_with(UPDATE_CHANNEL, ("DAZN", "9.90", 1))
+
+
+def test_update_channel_details_with_price_without_decimal(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.rowcount = 1
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.update_channel_details(1, "DAZN", "9")
+
+    mock_cursor.execute.assert_called_with(UPDATE_CHANNEL, ("DAZN", "9.00", 1))
+
+
+def test_update_channel_details_raises_exception_when_name_is_empty():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.update_channel_details(1, "", "24.99")
+
+
+def test_update_channel_details_raises_exception_when_name_exceeds_max_length():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.update_channel_details(1, "A" * 101, "24.99")
+
+
+def test_update_channel_details_raises_exception_when_price_is_empty():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.update_channel_details(1, "DAZN", "")
+
+
+def test_update_channel_details_raises_exception_when_price_exceeds_max_length():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.update_channel_details(1, "DAZN", "9" * 21)
+
+
+def test_update_channel_details_raises_exception_when_price_is_not_a_number():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.update_channel_details(1, "DAZN", "abc")
+
+
+def test_update_channel_details_raises_exception_when_price_is_negative():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.update_channel_details(1, "DAZN", "-5.99")
+
+
+def test_update_channel_details_raises_exception_when_price_has_more_than_two_decimal_places():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.update_channel_details(1, "DAZN", "9.999")
+
+
+def test_update_channel_details_warns_when_no_channel_is_found(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.rowcount = 0
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.update_channel_details(1, "DAZN", "24.99")
+
+    mock_cursor.execute.assert_called_with(UPDATE_CHANNEL, ("DAZN", "24.99", 1))
+    mock_logger.warning.assert_called_with("Attempted to update channel with id 1, but no channel was found")
+
+
+def test_database_connection_exception_raised_when_update_channel_details_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.update_channel_details(1, "DAZN", "24.99")
