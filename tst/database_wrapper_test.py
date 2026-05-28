@@ -1,7 +1,7 @@
 import database_wrapper
 import pytest
 
-from schemas.constants import ADD_CHANNEL, UPDATE_CHANNEL
+from schemas.constants import ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL
 from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException, InvalidArgumentException
 
 
@@ -396,3 +396,42 @@ def test_database_connection_exception_raised_when_update_channel_details_cannot
 
     with pytest.raises(DatabaseConnectionException):
         database_wrapper.update_channel_details(1, "DAZN", "24.99")
+
+
+def test_delete_channel(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.rowcount = 1
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.delete_channel(1)
+
+    mock_cursor.execute.assert_called_with(DELETE_CHANNEL, (1,))
+    mock_logger.info.assert_called_with("Deleted channel with id 1")
+
+
+def test_delete_channel_warns_when_no_channel_is_found(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.rowcount = 0
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    database_wrapper.delete_channel(1)
+
+    mock_cursor.execute.assert_called_with(DELETE_CHANNEL, (1,))
+    mock_logger.warning.assert_called_with("Attempted to delete channel with id 1, but no channel was found")
+
+
+def test_database_connection_exception_raised_when_delete_channel_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.delete_channel(1)

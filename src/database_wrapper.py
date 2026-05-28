@@ -3,7 +3,7 @@ import psycopg2
 from dotenv import load_dotenv
 from logging_config import logger
 from schemas.constants import CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA, GET_ALL_CHANNELS, \
-    GET_ALL_CHANNEL_NAMES, ADD_CHANNEL, UPDATE_CHANNEL
+    GET_ALL_CHANNEL_NAMES, ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL
 from schemas.exceptions import DatabaseConnectionException, InvalidArgumentException, NameAlreadyExistsException
 
 connection = None
@@ -154,6 +154,20 @@ def update_channel_details(channel_id: int, new_channel_name: str, new_channel_p
                                 f"New name: {new_channel_name}. New price: {new_formatted_price}")
     except Exception as e:
         logger.error(f"Failed to update channel with id {channel_id}: {e}")
+
+
+def delete_channel(channel_id: int):
+    connect_to_db()
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(DELETE_CHANNEL, (channel_id,))
+                if cursor.rowcount <= 0:
+                    logger.warning(f"Attempted to delete channel with id {channel_id}, but no channel was found")
+                else:
+                    logger.info(f"Deleted channel with id {channel_id}")
+    except Exception as e:
+        logger.error(f"Failed to delete channel with id {channel_id}: {e}")
 
 
 # --- Initialisation ---
