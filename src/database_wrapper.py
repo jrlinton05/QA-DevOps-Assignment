@@ -134,4 +134,3 @@ def add_new_channel(channel_name, channel_price):
 
 # --- Initialisation ---
 load_dotenv()
-connect_to_db()
