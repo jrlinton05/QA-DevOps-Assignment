@@ -1,0 +1,38 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Telescope</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="{{url_for('static', filename='styles.css')}}" />
+  </head>
+  <body>
+    <div class="site">
+      <header id="header">
+        <h1><a href="{{ url_for('index') }}">Telescope</a></h1>
+        <nav>
+          <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('channel_browser') }}">Channels</a></li>
+            {% if user.is_authenticated %}
+            <li><a href="{{ url_for('account') }}">Your Account</a></li>
+            {% else %}
+            <li><a href="{{ url_for('login') }}">Register/Login</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      </header>
+
+      <main>{% block content %}{% endblock %}</main>
+
+      <footer id="footer">
+        <ul class="features">
+          <li>Designed by Jack Linton</li>
+          <li>All changes deployed via pipeline</li>
+          <li>All code guarded against OWASP threats</li>
+        </ul>
+      </footer>
+    </div>
+  </body>
+</html>
