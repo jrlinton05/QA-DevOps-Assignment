@@ -1,8 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Channels</h1>
-<li>Channel 1</li>
-<li>Channel 2</li>
-<li>Channel 3</li>
+<div class="table-container">
+    <div class="table-header">
+        <h2>Channels</h2>
+        <a href="{{ url_for('create_channel') }}"><button class="create-btn">Create Channel</button></a>
+    </div>
+    <table class="sortable">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Monthly Price</th>
+        </tr>
+        {% for row in channel_data %}
+        <tr>
+            {% for cell in row %}
+            <td>{{ cell }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 {% endblock %}

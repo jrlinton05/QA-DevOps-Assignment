@@ -1,5 +1,7 @@
 from flask import Flask, render_template
 
+import database_wrapper
+
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 
 
@@ -16,7 +18,12 @@ def index():
 
 @app.route('/channels')
 def channel_browser():
-    return render_template('channel-browser.html')
+    return render_template('channel-browser.html', channel_data=database_wrapper.get_all_channels())
+
+
+@app.route('/channels/create')
+def create_channel():
+    return "Under Construction"
 
 
 @app.route('/login')

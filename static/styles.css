@@ -11,6 +11,15 @@
 
     --footer-background: #04131C;
     --footer-text: white;
+
+    --table-header: #DB995A;
+    --table-row-even: #EDCF8E;
+    --table-row-odd: #F1DAA7;
+    --table-row-hover: #ECCB83;
+    --table-border: #95A0B2;
+
+    --button-color: #815F6B;
+    --button-hover: #6A4E58;
 }
 
 /* Browser Sizing Reset */
@@ -45,6 +54,12 @@ body {
 
 main {
     padding: calc(var(--header-height) + 1em) 2em 1em 2em;
+}
+
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
 }
 
 /* Page Header */
@@ -138,4 +153,62 @@ main {
 
 #footer .features li a {
     color: inherit;
+}
+
+/* Buttons */
+.create-btn {
+    background: var(--button-color);
+    color: var(--page-text);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.create-btn:hover {
+    background: var(--button-hover);
+}
+
+/* Tables */
+.table-container {
+    background: var(--table-header);
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid var(--table-border);
+    padding: 8px;
+}
+
+tr:nth-child(odd) {
+    background: var(--table-row-odd)
+}
+
+tr:nth-child(even) {
+    background: var(--table-row-even);
+}
+
+tr:hover {
+    background: var(--table-row-hover);
+}
+
+th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background: var(--table-header);
+    color: var(--page-text);
 }
