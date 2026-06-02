@@ -11,7 +11,7 @@ CREATE_CHANNELS_TABLE = """CREATE TABLE IF NOT EXISTS channels (
     channel_price varchar(20) NOT NULL
 );"""
 
-GET_ALL_CHANNELS = "SELECT * FROM channels;"
+GET_ALL_CHANNELS = "SELECT * FROM channels ORDER BY channel_id;"
 
 GET_ALL_CHANNEL_NAMES = "SELECT channel_name FROM channels;"
 

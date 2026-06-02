@@ -11,12 +11,14 @@
             <th>ID</th>
             <th>Name</th>
             <th>Monthly Price</th>
+            <th></th>
         </tr>
         {% for row in channel_data %}
         <tr>
-            {% for cell in row %}
-            <td>{{ cell }}</td>
-            {% endfor %}
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>£{{ row[2] }}</td>
+            <td><a href="{{ url_for('update_channel', channel_id=row[0]) }}"><button class="create-btn">Edit Channel</button></a></td>
         </tr>
         {% endfor %}
     </table>

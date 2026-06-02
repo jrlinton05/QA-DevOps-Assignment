@@ -48,6 +48,28 @@ def create_channel():
     return render_template('channel-add.html')
 
 
+@app.route('/channels/<int:channel_id>/edit', methods=['GET', 'POST'])
+def update_channel(channel_id):
+    if request.method == 'POST':
+        channel_name = request.form['channel_name']
+        channel_price = request.form['channel_price']
+
+        try:
+            database_wrapper.update_channel_details(channel_id, channel_name, channel_price)
+            flash("Channel updated successfully")
+            return redirect(url_for('channel_browser'))
+        except (NameAlreadyExistsException, InvalidArgumentException) as e:
+            return render_template('channel-update.html', error=str(e),
+                                   channel_id=channel_id, channel_name=channel_name, channel_price=channel_price)
+
+    data = database_wrapper.get_channel_data(channel_id)
+    if data is None:
+        flash("Channel not found", "error")
+        return redirect(url_for('channel_browser'))
+    return render_template('channel-update.html', channel_id=channel_id,
+                           channel_name=data[0], channel_price=data[1])
+
+
 @app.route('/login')
 def login():
     return "Under Construction"
