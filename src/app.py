@@ -1,9 +1,9 @@
 import os
 from dotenv import load_dotenv
-from flask import Flask, render_template
+from flask import Flask, render_template, request, flash, url_for, redirect
 
 import database_wrapper
-
+from schemas.exceptions import NameAlreadyExistsException, InvalidArgumentException, DatabaseConnectionException
 
 load_dotenv()
 
@@ -17,6 +17,11 @@ def inject_user():
     return {'user': {'is_authenticated': False}}
 
 
+@app.errorhandler(DatabaseConnectionException)
+def handle_db_error(e):
+    return render_template('error.html', message="Unable to connect to database"), 503
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -27,9 +32,20 @@ def channel_browser():
     return render_template('channel-browser.html', channel_data=database_wrapper.get_all_channels())
 
 
-@app.route('/channels/create')
+@app.route('/channels/create', methods=['GET', 'POST'])
 def create_channel():
-    return "Under Construction"
+    if request.method == 'POST':
+        channel_name = request.form['channel_name']
+        channel_price = request.form['channel_price']
+
+        try:
+            database_wrapper.add_new_channel(channel_name, channel_price)
+            flash("Channel created successfully")
+            return redirect(url_for('channel_browser'))
+        except (NameAlreadyExistsException, InvalidArgumentException) as e:
+            return render_template('channel-add.html', error=str(e),
+                                   channel_name=channel_name, channel_price=channel_price)
+    return render_template('channel-add.html')
 
 
 @app.route('/login')
