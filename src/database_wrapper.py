@@ -20,6 +20,15 @@ def check_if_channel_name_exists(channel_name: str):
 # --- Database Connection ---
 def connect_to_db():
     global connection
+
+    # Test connection to database
+    if connection is not None:
+        try:
+            connection.cursor().execute("SELECT 1")
+        except Exception:
+            connection = None
+
+    # Form a connection to the database if one is not already established
     if connection is None:
         try:
             connection = psycopg2.connect(os.environ["DATABASE_URL"])

@@ -1,8 +1,13 @@
+from dotenv import load_dotenv
+
 import database_wrapper
 import pytest
 
 from schemas.constants import ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL
 from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException, InvalidArgumentException
+
+
+load_dotenv()
 
 
 @pytest.fixture(autouse=True)
