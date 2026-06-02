@@ -15,7 +15,7 @@ connection = None
 def check_if_channel_name_exists(channel_name: str):
     existing_channel_names = get_all_channel_names()
     if channel_name in existing_channel_names:
-        raise NameAlreadyExistsException
+        raise NameAlreadyExistsException("Channel name already exists in the database")
 
 
 # --- Database Connection ---
