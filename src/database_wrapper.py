@@ -1,5 +1,6 @@
 import os
 import psycopg2
+from retrying import retry
 
 import data_validation
 from logging_config import logger
@@ -18,6 +19,7 @@ def check_if_channel_name_exists(channel_name: str):
 
 
 # --- Database Connection ---
+@retry(stop_max_attempt_number=5, wait_exponential_multiplier=1000)
 def connect_to_db():
     global connection
 
@@ -31,6 +33,7 @@ def connect_to_db():
     # Form a connection to the database if one is not already established
     if connection is None:
         try:
+            logger.info("Attempting to connect to database")
             connection = psycopg2.connect(os.environ["DATABASE_URL"])
             logger.info("Connected to database successfully")
         except Exception as e:

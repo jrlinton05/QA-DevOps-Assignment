@@ -11,8 +11,9 @@ load_dotenv()
 
 
 @pytest.fixture(autouse=True)
-def setup():
+def setup(mocker):
     database_wrapper.connection = None
+    mocker.patch("time.sleep")
 
 
 def test_connect_to_db(mocker):
@@ -23,7 +24,7 @@ def test_connect_to_db(mocker):
     database_wrapper.connect_to_db()
 
     assert database_wrapper.connection == mock_response
-    mock_logger.info.assert_called_once_with("Connected to database successfully")
+    mock_logger.info.assert_called_with("Connected to database successfully")
 
 
 def test_exception_raised_when_connect_to_db_fails(mocker):
@@ -34,7 +35,20 @@ def test_exception_raised_when_connect_to_db_fails(mocker):
         database_wrapper.connect_to_db()
 
     assert database_wrapper.connection is None
-    mock_logger.error.assert_called_once_with("Failed to connect to database: connection failed")
+    mock_logger.error.assert_called_with("Failed to connect to database: connection failed")
+
+
+def test_retries_are_attempted_when_connect_to_db_fails(mocker):
+    mock_response = mocker.Mock()
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=[Exception("connection failed"),
+                                                                   Exception("connection failed"), mock_response])
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    database_wrapper.connect_to_db()
+
+    assert database_wrapper.connection == mock_response
+    mock_logger.error.assert_called_with("Failed to connect to database: connection failed")
+    mock_logger.info.assert_called_with("Connected to database successfully")
 
 
 def test_get_channel_data(mocker):
