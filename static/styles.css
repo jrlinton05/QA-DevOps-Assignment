@@ -15,7 +15,6 @@
     --table-header: #DB995A;
     --table-row-even: #EDCF8E;
     --table-row-odd: #F1DAA7;
-    --table-row-hover: #ECCB83;
     --table-border: #95A0B2;
 
     --button-color: #815F6B;
@@ -235,10 +234,6 @@ tr:nth-child(odd) {
 
 tr:nth-child(even) {
     background: var(--table-row-even);
-}
-
-tr:hover {
-    background: var(--table-row-hover);
 }
 
 th {
