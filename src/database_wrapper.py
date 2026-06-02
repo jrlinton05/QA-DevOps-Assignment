@@ -1,6 +1,5 @@
 import os
 import psycopg2
-from dotenv import load_dotenv
 from logging_config import logger
 from schemas.constants import CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA, GET_ALL_CHANNELS, \
     GET_ALL_CHANNEL_NAMES, ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL
@@ -168,7 +167,3 @@ def delete_channel(channel_id: int):
                     logger.info(f"Deleted channel with id {channel_id}")
     except Exception as e:
         logger.error(f"Failed to delete channel with id {channel_id}: {e}")
-
-
-# --- Initialisation ---
-load_dotenv()

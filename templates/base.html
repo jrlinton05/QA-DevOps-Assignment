@@ -24,7 +24,31 @@
         </nav>
       </header>
 
-      <main>{% block content %}{% endblock %}</main>
+      <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              {% if category == 'error' %}
+                <div class="flash error" role="alert">
+                  {{ message }}
+                  <button type="button" class="close-btn">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+              {% else %}
+                <div class="flash" role="alert">
+                  {{ message }}
+                  <button type="button" class="close-btn">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+      </main>
 
       <footer id="footer">
         <ul class="features">
@@ -34,5 +58,26 @@
         </ul>
       </footer>
     </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.flash').forEach(el => {
+          setTimeout(() => el.classList.add('show'), 10);
+
+          setTimeout(() => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 500);
+          }, 5000);
+        });
+
+        document.querySelectorAll('.close-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const flash = btn.parentElement;
+            flash.classList.remove('show');
+            setTimeout(() => flash.remove(), 500);
+          });
+        });
+      });
+    </script>
   </body>
 </html>

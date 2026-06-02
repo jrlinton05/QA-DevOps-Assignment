@@ -33,6 +33,7 @@ jobs:
     - name: Test with pytest
       env:
         DATABASE_URL: "fake_url"
+        SECRET_KEY: "test-secret-key"
       run: |
         pytest
         

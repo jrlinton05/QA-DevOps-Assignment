@@ -1,8 +1,14 @@
+import os
+from dotenv import load_dotenv
 from flask import Flask, render_template
 
 import database_wrapper
 
+
+load_dotenv()
+
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
+app.secret_key = os.environ["SECRET_KEY"]
 
 
 # Temporary user - remove after setting up flask-login system

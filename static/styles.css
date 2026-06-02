@@ -20,6 +20,10 @@
 
     --button-color: #815F6B;
     --button-hover: #6A4E58;
+
+    --flash-alert-background: #FAF8D4;
+    --flash-alert-text: #2C6E49;
+    --flash-error-background: #BB4430;
 }
 
 /* Browser Sizing Reset */
@@ -60,6 +64,31 @@ button, input, select, textarea {
     font-family: inherit;
     font-size: inherit;
     font-weight: inherit;
+}
+
+/* Flash Alerts */
+.flash {
+    padding: 1em;
+    margin: 1em 2em;
+    border-radius: 4px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: color-mix(in srgb, var(--flash-alert-background), black 40%);
+    background: var(--flash-alert-background);
+    color: var(--flash-alert-text);
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.flash.show {
+    opacity: 0.85;
+}
+
+.flash.error {
+    border-color: color-mix(in srgb, var(--flash-error-background), black 40%);
+    background: var(--flash-error-background);
+    color: white;
 }
 
 /* Page Header */
@@ -169,6 +198,13 @@ button, input, select, textarea {
 
 .create-btn:hover {
     background: var(--button-hover);
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    float: right;
 }
 
 /* Tables */
