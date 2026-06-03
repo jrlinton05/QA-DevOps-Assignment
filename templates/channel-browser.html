@@ -7,24 +7,29 @@
         <a href="{{ url_for('create_channel') }}"><button class="create-btn">Create Channel</button></a>
     </div>
     <table class="sortable">
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Monthly Price</th>
-            <th></th>
-        </tr>
-        {% for row in channel_data %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            {% if row[2] == "0.00" %}
-                <td>Free</td>
-            {% else %}
-                <td>£{{ row[2] }}</td>
-            {% endif %}
-            <td><a href="{{ url_for('update_channel', channel_id=row[0]) }}"><button class="create-btn">Edit Channel</button></a></td>
-        </tr>
-        {% endfor %}
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Monthly Price</th>
+                <th class="no-sort"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in channel_data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                {% if row[2] == "0.00" %}
+                    <td data-sort="0">Free</td>
+                {% else %}
+                    <td data-sort="{{ row[2] }}">£{{ row[2] }}</td>
+                {% endif %}
+                <td class="edit-button-row"><a href="{{ url_for('update_channel', channel_id=row[0]) }}">
+                    <button class="create-btn">Edit Channel</button></a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 </div>
 {% endblock %}

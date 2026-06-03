@@ -17,7 +17,7 @@
     --footer-text: white;
 
     --table-header: #415A77;
-    --table-row-even: #778DA9;
+    --table-row-even: #aac1dc;
     --table-row-odd: #6281A8;
     --table-border: white;
     --table-text: white;
@@ -263,19 +263,12 @@ td, th {
     padding: 8px;
 }
 
-tr:nth-child(odd) {
-    background: var(--table-row-odd)
-}
-
 tr:nth-child(even) {
     background: var(--table-row-even);
 }
 
-th {
-    padding-top: 12px;
-    padding-bottom: 12px;
-    text-align: left;
-    background: var(--table-header);
+.edit-button-row {
+    text-align: center;
 }
 
 /* Forms */
