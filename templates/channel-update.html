@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Update Channel {{ channel_id }}</h2>
+<h1>Update Channel {{ channel_id }}</h1>
 <form method="POST" action="{{ url_for('update_channel', channel_id=channel_id) }}">
   <label for="channel_name">Channel Name</label>
   <input type="text" id="channel_name" name="channel_name" maxlength="100" value="{{ channel_name or '' }}" required>

@@ -2,27 +2,34 @@
 
 /* Variables */
 :root {
-    --header-background: #04131C;
+    --h1: #3371C1;
+    --h2: #2F68B1;
+    --h3: #2B5EA1;
+
+    --header-background: #0D1B2A;
     --header-text: white;
-    --header-height: 3.5em;
+    --header-height: 4em;
 
-    --page-background: #97A2B4;
-    --page-text: white;
+    --page-background: white;
+    --page-text: black;
 
-    --footer-background: #04131C;
+    --footer-background: #0D1B2A;
     --footer-text: white;
 
-    --table-header: #DB995A;
-    --table-row-even: #DEA52B;
-    --table-row-odd: #E1AD3D;
-    --table-border: #95A0B2;
+    --table-header: #415A77;
+    --table-row-even: #778DA9;
+    --table-row-odd: #6281A8;
+    --table-border: white;
+    --table-text: white;
 
-    --button-color: #815F6B;
-    --button-hover: #6A4E58;
+    --button-color: #4D86D0;
+    --button-hover: #235894;
+    --button-text: white;
 
-    --flash-alert-background: #FAF8D4;
-    --flash-alert-text: #2C6E49;
-    --flash-error-background: #BB4430;
+    --flash-alert-background: #E6EECE;
+    --flash-alert-text: #4D86D0;
+    --flash-error-background: #832717;
+    --flash-alert-error-text: white;
 }
 
 /* Browser Sizing Reset */
@@ -51,7 +58,7 @@ body {
 .site {
     min-height: 100dvh;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: 1fr auto;
     grid-template-columns: minmax(0, 1fr);
 }
 
@@ -63,6 +70,25 @@ button, input, select, textarea {
     font-family: inherit;
     font-size: inherit;
     font-weight: inherit;
+}
+
+/* Text */
+h1 {
+    color: var(--h1);
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+h2 {
+    color: var(--h2);
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+h3 {
+    color: var(--h3);
+    font-size: 1.5rem;
+    font-weight: 500;
 }
 
 /* Flash Alerts */
@@ -87,7 +113,7 @@ button, input, select, textarea {
 .flash.error {
     border-color: color-mix(in srgb, var(--flash-error-background), black 40%);
     background: var(--flash-error-background);
-    color: white;
+    color: var(--flash-alert-error-text);
 }
 
 /* Page Header */
@@ -113,6 +139,7 @@ button, input, select, textarea {
     margin: 0;
     position: absolute;
     top: 0;
+    color: white;
 }
 
 #header h1 a {
@@ -186,11 +213,11 @@ button, input, select, textarea {
 /* Buttons */
 .create-btn {
     background: var(--button-color);
-    color: var(--page-text);
+    color: var(--button-text);
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
-    font-size: 14px;
+    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
 }
@@ -209,13 +236,21 @@ button, input, select, textarea {
 /* Tables */
 .table-container {
     background: var(--table-header);
+    color: var(--table-text);
+    border-radius: 15px;
+    overflow: hidden;
+    padding: 20px 20px;
 }
 
 .table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding-bottom: 10px;
+}
+
+.table-header h2 {
+    color: inherit;
 }
 
 table {
@@ -241,7 +276,6 @@ th {
     padding-bottom: 12px;
     text-align: left;
     background: var(--table-header);
-    color: var(--page-text);
 }
 
 /* Forms */
@@ -250,6 +284,15 @@ form {
     flex-direction: column;
     gap: 1em;
     max-width: 400px;
+    padding-top: 20px;
+}
+
+form .create-btn {
+    font-size: 1.5em;
+}
+
+label {
+    font-size: 1.5em;
 }
 
 .form-error {

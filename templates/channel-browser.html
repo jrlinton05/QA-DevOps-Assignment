@@ -17,7 +17,11 @@
         <tr>
             <td>{{ row[0] }}</td>
             <td>{{ row[1] }}</td>
-            <td>£{{ row[2] }}</td>
+            {% if row[2] == "0.00" %}
+                <td>Free</td>
+            {% else %}
+                <td>£{{ row[2] }}</td>
+            {% endif %}
             <td><a href="{{ url_for('update_channel', channel_id=row[0]) }}"><button class="create-btn">Edit Channel</button></a></td>
         </tr>
         {% endfor %}
