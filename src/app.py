@@ -45,6 +45,9 @@ def create_channel():
         except (NameAlreadyExistsException, InvalidArgumentException) as e:
             return render_template('channel-add.html', error=str(e),
                                    channel_name=channel_name, channel_price=channel_price)
+        except Exception as e:
+            flash(str(e), "error")
+            return redirect(url_for('channel_browser'))
     return render_template('channel-add.html')
 
 
@@ -61,6 +64,9 @@ def update_channel(channel_id):
         except (NameAlreadyExistsException, InvalidArgumentException) as e:
             return render_template('channel-update.html', error=str(e),
                                    channel_id=channel_id, channel_name=channel_name, channel_price=channel_price)
+        except Exception as e:
+            flash(str(e), "error")
+            return redirect(url_for('channel_browser'))
 
     data = database_wrapper.get_channel_data(channel_id)
     if data is None:
@@ -68,6 +74,18 @@ def update_channel(channel_id):
         return redirect(url_for('channel_browser'))
     return render_template('channel-update.html', channel_id=channel_id,
                            channel_name=data[0], channel_price=data[1])
+
+
+@app.route('/channels/<int:channel_id>/delete', methods=['POST'])
+def delete_channel(channel_id):
+    try:
+        database_wrapper.delete_channel(channel_id)
+        flash("Channel deleted successfully")
+    except DatabaseConnectionException:
+        raise
+    except Exception as e:
+        flash(str(e), "error")
+    return redirect(url_for('channel_browser'))
 
 
 @app.route('/login')

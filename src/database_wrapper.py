@@ -118,7 +118,8 @@ def add_new_channel(channel_name: str, channel_price: str):
                 cursor.execute(ADD_CHANNEL, (channel_name, formatted_price))
                 logger.info(f"Added new channel with name: {channel_name} and price: {formatted_price}")
     except Exception as e:
-        logger.error(f"Failed to add new channel name: {e}")
+        logger.error(f"Failed to create new channel: {e}")
+        raise Exception(f"Failed to create new channel")
 
 
 def update_channel_details(channel_id: int, new_channel_name: str, new_channel_price: str):
@@ -138,6 +139,7 @@ def update_channel_details(channel_id: int, new_channel_name: str, new_channel_p
                                 f"New name: {new_channel_name}. New price: {new_formatted_price}")
     except Exception as e:
         logger.error(f"Failed to update channel with id {channel_id}: {e}")
+        raise Exception(f"Failed to update channel {channel_id}")
 
 
 def delete_channel(channel_id: int):
@@ -152,3 +154,4 @@ def delete_channel(channel_id: int):
                     logger.info(f"Deleted channel with id {channel_id}")
     except Exception as e:
         logger.error(f"Failed to delete channel with id {channel_id}: {e}")
+        raise Exception(f"Failed to delete channel {channel_id}")
