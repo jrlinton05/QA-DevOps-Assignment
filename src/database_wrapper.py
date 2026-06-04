@@ -122,12 +122,16 @@ def add_new_channel(channel_name: str, channel_price: str):
         raise Exception(f"Failed to create new channel")
 
 
+# --- Channel Table Update Methods ---
 def update_channel_details(channel_id: int, new_channel_name: str, new_channel_price: str):
     data_validation.validate_channel_data(new_channel_name, new_channel_price)
 
+    existing_details = get_channel_data(channel_id)
+    if existing_details and existing_details[0] != new_channel_name:
+        check_if_channel_name_exists(new_channel_name)
+
     new_formatted_price = f"{float(new_channel_price):.2f}"
 
-    connect_to_db()
     try:
         with connection:
             with connection.cursor() as cursor:
@@ -142,6 +146,7 @@ def update_channel_details(channel_id: int, new_channel_name: str, new_channel_p
         raise Exception(f"Failed to update channel {channel_id}")
 
 
+# --- Channel Table Delete Methods ---
 def delete_channel(channel_id: int):
     connect_to_db()
     try:
