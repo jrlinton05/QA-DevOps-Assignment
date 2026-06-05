@@ -3,7 +3,8 @@ from dotenv import load_dotenv
 import database_wrapper
 import pytest
 
-from schemas.constants import ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL
+from schemas.constants import ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL, GET_USER_BY_USERNAME, GET_USER_BY_ID, \
+    ADD_USER
 from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException, InvalidArgumentException
 
 
@@ -454,3 +455,174 @@ def test_database_connection_exception_raised_when_delete_channel_cannot_find_co
 
     with pytest.raises(DatabaseConnectionException):
         database_wrapper.delete_channel(1)
+
+
+def test_get_user_by_username(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchone.return_value = (1, "$2b$12$hashedpassword", False)
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_user_by_username("testuser")
+
+    assert result == (1, "$2b$12$hashedpassword", False)
+    mock_cursor.execute.assert_called_with(GET_USER_BY_USERNAME, ("testuser",))
+
+
+def test_get_user_by_username_when_user_does_not_exist(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchone.return_value = None
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_user_by_username("nonexistent")
+
+    assert result is None
+
+
+def test_database_connection_exception_raised_when_get_user_by_username_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.get_user_by_username("testuser")
+
+
+def test_get_user_by_user_id(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchone.return_value = ("testuser", False)
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_user_by_user_id(1)
+
+    assert result == ("testuser", False)
+    mock_cursor.execute.assert_called_with(GET_USER_BY_ID, (1,))
+
+
+def test_get_user_by_user_id_when_user_does_not_exist(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchone.return_value = None
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_user_by_user_id(999)
+
+    assert result is None
+
+
+def test_database_connection_exception_raised_when_get_user_by_user_id_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.get_user_by_user_id(1)
+
+
+def test_get_all_usernames_returns_single_value(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("testuser",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_all_usernames()
+
+    assert result == ["testuser"]
+    mock_logger.info.assert_called_with("Found the following usernames in the database: ['testuser']")
+
+
+def test_get_all_usernames_returns_multiple_values(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("testuser",), ("admin",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_all_usernames()
+
+    assert result == ["testuser", "admin"]
+    mock_logger.info.assert_called_with("Found the following usernames in the database: ['testuser', 'admin']")
+
+
+def test_get_all_usernames_when_database_is_empty(mocker):
+    mock_logger = mocker.patch("database_wrapper.logger")
+
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = []
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    result = database_wrapper.get_all_usernames()
+
+    assert result == []
+    mock_logger.warning.assert_called_with("No usernames were found in the database")
+
+
+def test_database_connection_exception_raised_when_get_all_usernames_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.get_all_usernames()
+
+
+def test_add_new_user(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("existinguser",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+    mocker.patch("database_wrapper.hashpw", return_value=b"hashedpassword")
+
+    database_wrapper.add_new_user("newuser", "averylongpassword")
+
+    mock_cursor.execute.assert_called_with(ADD_USER, ("newuser", "hashedpassword", False))
+
+
+def test_add_new_user_raises_exception_when_username_is_empty():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_user("", "averylongpassword")
+
+
+def test_add_new_user_raises_exception_when_username_exceeds_max_length():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_user("a" * 21, "averylongpassword")
+
+
+def test_add_new_user_raises_exception_when_password_is_too_short():
+    with pytest.raises(InvalidArgumentException):
+        database_wrapper.add_new_user("newuser", "short")
+
+
+def test_add_new_user_raises_exception_when_username_already_exists(mocker):
+    mock_cursor = mocker.MagicMock()
+    mock_cursor.fetchall.return_value = [("newuser",)]
+
+    mock_connection = mocker.MagicMock()
+    mock_connection.cursor.return_value.__enter__.return_value = mock_cursor
+    mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_connection)
+
+    with pytest.raises(NameAlreadyExistsException):
+        database_wrapper.add_new_user("newuser", "averylongpassword")
+
+
+def test_database_connection_exception_raised_when_add_new_user_cannot_find_connection(mocker):
+    mocker.patch("database_wrapper.psycopg2.connect", side_effect=Exception("connection failed"))
+
+    with pytest.raises(DatabaseConnectionException):
+        database_wrapper.add_new_user("newuser", "averylongpassword")

@@ -6,6 +6,8 @@
     --h2: #2F68B1;
     --h3: #2B5EA1;
 
+    --links: #0d376e;
+
     --header-background: #0D1B2A;
     --header-text: white;
     --header-height: 4em;
@@ -89,6 +91,10 @@ h3 {
     color: var(--h3);
     font-size: 1.5rem;
     font-weight: 500;
+}
+
+a {
+    color: var(--links);
 }
 
 /* Flash Alerts */
@@ -175,6 +181,12 @@ h3 {
     display: none;
 }
 
+#header form {
+    display: inline;
+    padding: 0;
+    gap: 0;
+}
+
 /* Page Footer */
 #footer {
     background: var(--footer-background);
@@ -231,6 +243,21 @@ h3 {
     border: none;
     cursor: pointer;
     float: right;
+}
+
+.text-only-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    display: inline-block;
+    height: inherit;
+    line-height: inherit;
+    outline: 0;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    text-decoration: underline
 }
 
 /* Tables */

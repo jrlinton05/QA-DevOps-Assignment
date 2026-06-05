@@ -5,10 +5,12 @@ description = "Simple Web App for Completing the Software Engineering and DevOps
 requires-python = ">=3.9"
 dependencies = [
     "flask",
+    "flask-login",
     "gunicorn",
     "psycopg2-binary",
     "python-dotenv",
-    "retrying"
+    "retrying",
+    "bcrypt"
 ]
 
 [tool.pytest.ini_options]

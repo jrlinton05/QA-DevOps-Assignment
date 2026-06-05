@@ -1,11 +1,14 @@
 import os
 import psycopg2
+from bcrypt import hashpw, gensalt
 from retrying import retry
 
 import data_validation
 from logging_config import logger
-from schemas.constants import CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA, GET_ALL_CHANNELS, \
-    GET_ALL_CHANNEL_NAMES, ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL
+from schemas.constants import (CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA, GET_ALL_CHANNELS,
+                               GET_ALL_CHANNEL_NAMES, ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL, GET_USER_BY_USERNAME,
+                               GET_USER_BY_ID,
+                               ADD_USER, GET_ALL_USERNAMES)
 from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException
 
 connection = None
@@ -16,6 +19,12 @@ def check_if_channel_name_exists(channel_name: str):
     existing_channel_names = get_all_channel_names()
     if channel_name in existing_channel_names:
         raise NameAlreadyExistsException("Channel name already exists in the database")
+
+
+def check_if_username_exists(username: str):
+    existing_usernames = get_all_usernames()
+    if username in existing_usernames:
+        raise NameAlreadyExistsException("Username already exists")
 
 
 # --- Database Connection ---
@@ -103,10 +112,14 @@ def get_all_channel_names() -> list[str]:
                 return data
     except Exception as e:
         logger.error(f"Failed to fetch channel names: {e}")
+        raise e
 
 
 # --- Channel Table Create Methods ---
 def add_new_channel(channel_name: str, channel_price: str):
+    channel_name = channel_name.strip()
+    channel_price = channel_price.strip()
+
     data_validation.validate_channel_data(channel_name, channel_price)
     check_if_channel_name_exists(channel_name)
 
@@ -124,6 +137,9 @@ def add_new_channel(channel_name: str, channel_price: str):
 
 # --- Channel Table Update Methods ---
 def update_channel_details(channel_id: int, new_channel_name: str, new_channel_price: str):
+    new_channel_name = new_channel_name.strip()
+    new_channel_price = new_channel_price.strip()
+
     data_validation.validate_channel_data(new_channel_name, new_channel_price)
 
     existing_details = get_channel_data(channel_id)
@@ -160,3 +176,64 @@ def delete_channel(channel_id: int):
     except Exception as e:
         logger.error(f"Failed to delete channel with id {channel_id}: {e}")
         raise Exception(f"Failed to delete channel {channel_id}")
+
+
+# --- User Table Read Methods ---
+def get_user_by_username(username: str) -> tuple[int, str, bool]:
+    connect_to_db()
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(GET_USER_BY_USERNAME, (username,))
+                return cursor.fetchone()
+    except Exception as e:
+        logger.error(f"Error occurred while fetching user details: {e}")
+        raise e
+
+
+def get_user_by_user_id(user_id: int) -> tuple[str, bool]:
+    connect_to_db()
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(GET_USER_BY_ID, (user_id,))
+                return cursor.fetchone()
+    except Exception as e:
+        logger.error(f"Error occurred while fetching user details: {e}")
+        raise e
+
+
+def get_all_usernames() -> list[str]:
+    connect_to_db()
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(GET_ALL_USERNAMES)
+                data = [row[0] for row in cursor.fetchall()]
+                if not data:
+                    logger.warning("No usernames were found in the database")
+                else:
+                    logger.info(f"Found the following usernames in the database: {data}")
+                return data
+    except Exception as e:
+        logger.error(f"Failed to fetch usernames: {e}")
+        raise e
+
+
+# --- User Table Create Methods ---
+def add_new_user(username: str, password: str):
+    username = username.strip()
+
+    data_validation.validate_user_data(username, password)
+    check_if_username_exists(username)
+
+    hashed_password = hashpw(password.encode(), gensalt()).decode()
+
+    try:
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(ADD_USER, (username, hashed_password, False))
+                logger.info(f"Added new user: {username}")
+    except Exception as e:
+        logger.error(f"Failed to create new user: {e}")
+        raise Exception("Failed to create new user")

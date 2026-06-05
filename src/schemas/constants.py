@@ -23,18 +23,12 @@ UPDATE_CHANNEL = "UPDATE channels SET channel_name = %s, channel_price = %s WHER
 
 DELETE_CHANNEL = "DELETE FROM channels WHERE channel_id = %s;"
 
-GET_USER_PASSWORD = "SELECT password FROM users WHERE user_id = %s;"
+GET_USER_BY_USERNAME = "SELECT user_id, password, is_admin FROM users WHERE username = %s;"
 
-GET_USER_DATA = "SELECT username, is_admin FROM users WHERE user_id = %s;"
+GET_USER_BY_ID = "SELECT username, is_admin FROM users WHERE user_id = %s;"
 
 GET_ALL_USERS = "SELECT username, is_admin FROM users;"
 
 GET_ALL_USERNAMES = "SELECT username FROM users;"
 
 ADD_USER = "INSERT INTO users (username, password, is_admin) VALUES (%s, %s, %s);"
-
-UPDATE_USER_DETAILS = "UPDATE users SET username = %s, password = %s WHERE user_id = %s;"
-
-UPDATE_USER_ADMIN_STATUS = "UPDATE users SET is_admin = %s WHERE user_id = %s;"
-
-DELETE_USER = "DELETE FROM users WHERE user_id = %s;"

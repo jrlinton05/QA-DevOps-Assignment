@@ -18,7 +18,11 @@
             <li><a href="{{ url_for('index') }}">Home</a></li>
             <li><a href="{{ url_for('channel_browser') }}">Channels</a></li>
             {% if user.is_authenticated %}
-            <li><a href="{{ url_for('account') }}">Your Account</a></li>
+            <li>
+              <form method="POST" action="{{ url_for('logout') }}">
+                <button class="text-only-btn" type="submit">Log Out</button>
+              </form>
+            </li>
             {% else %}
             <li><a href="{{ url_for('login') }}">Register/Login</a></li>
             {% endif %}

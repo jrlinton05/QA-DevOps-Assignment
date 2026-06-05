@@ -1,20 +1,34 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, url_for, redirect
+from flask_login import LoginManager, login_user, login_required, current_user, logout_user
+from bcrypt import checkpw
 
 import database_wrapper
 from schemas.exceptions import NameAlreadyExistsException, InvalidArgumentException, DatabaseConnectionException
+from schemas.types import User
 
 load_dotenv()
 
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 app.secret_key = os.environ["SECRET_KEY"]
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-# Temporary user - remove after setting up flask-login system
+
 @app.context_processor
 def inject_user():
-    return {'user': {'is_authenticated': False}}
+    return dict(user=current_user)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    user_data = database_wrapper.get_user_by_user_id(int(user_id))
+    if user_data:
+        return User(user_id=int(user_id), username=user_data[0], is_admin=user_data[1])
+    return None
 
 
 @app.errorhandler(DatabaseConnectionException)
@@ -33,6 +47,7 @@ def channel_browser():
 
 
 @app.route('/channels/create', methods=['GET', 'POST'])
+@login_required
 def create_channel():
     if request.method == 'POST':
         channel_name = request.form['channel_name']
@@ -52,6 +67,7 @@ def create_channel():
 
 
 @app.route('/channels/<int:channel_id>/edit', methods=['GET', 'POST'])
+@login_required
 def update_channel(channel_id):
     if request.method == 'POST':
         channel_name = request.form['channel_name']
@@ -77,6 +93,7 @@ def update_channel(channel_id):
 
 
 @app.route('/channels/<int:channel_id>/delete', methods=['POST'])
+@login_required
 def delete_channel(channel_id):
     try:
         database_wrapper.delete_channel(channel_id)
@@ -88,14 +105,51 @@ def delete_channel(channel_id):
     return redirect(url_for('channel_browser'))
 
 
-@app.route('/login')
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        try:
+            database_wrapper.add_new_user(username, password)
+            flash("Account created successfully")
+            return redirect(url_for('login'))
+        except NameAlreadyExistsException as e:
+            return render_template('register.html', error=str(e), username=username)
+        except InvalidArgumentException as e:
+            return render_template('register.html', error=str(e), username=username)
+
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return "Under Construction"
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        user_data = database_wrapper.get_user_by_username(username)
+        if user_data and checkpw(password.encode(), user_data[1].strip().encode()):
+            user = User(user_id=user_data[0], username=username, is_admin=user_data[2])
+            login_user(user)
+            return redirect(url_for('index'))
+
+        return render_template('login.html', error="Invalid username or password", username=username)
+
+    return render_template('login.html')
 
 
-@app.route('/account')
-def account():
-    return "Under Construction"
+@app.route('/logout', methods=['POST'])
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 
 if __name__ == '__main__':

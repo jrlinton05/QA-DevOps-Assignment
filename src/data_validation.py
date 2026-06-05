@@ -29,3 +29,14 @@ def validate_channel_data(channel_name: str, channel_price: str):
         error_message = f"Channel Price {channel_price} is not a valid number"
         logger.warning(error_message)
         raise InvalidArgumentException(error_message)
+
+
+def validate_user_data(username: str, password: str):
+    if not username or len(username) > 20:
+        error_message = f"Username is invalid"
+        logger.warning(error_message)
+        raise InvalidArgumentException(error_message)
+    if not password or len(password) < 15:
+        error_message = "Password must be at least 15 characters"
+        logger.warning(error_message)
+        raise InvalidArgumentException(error_message)

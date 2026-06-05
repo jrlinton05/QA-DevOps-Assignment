@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Login</h1>
+<h3>New to Telescope? Register <a href="{{ url_for('register') }}">here</a></h3>
+<form method="POST" action="{{ url_for('login') }}">
+  <label for="username">Username</label>
+  <input type="text" id="username" name="username" maxlength="20" value="{{ username or '' }}" required>
+
+  <label for="password">Password</label>
+  <input type="password" id="password" name="password" minlength="15" required>
+
+  {% if error %}
+  <p class="form-error">{{ error }}</p>
+  {% endif %}
+
+  <button type="submit" class="create-btn">Login</button>
+</form>
+{% endblock %}
