@@ -18,6 +18,8 @@
     --footer-background: #0D1B2A;
     --footer-text: white;
 
+    --info-container: #cbdfff;
+
     --table-header: #415A77;
     --table-row-even: #aac1dc;
     --table-row-odd: #6281A8;
@@ -327,4 +329,13 @@ label {
     font-weight: 600;
     font-size: 1.8em;
     color: var(--flash-error-background);
+}
+
+.info-container {
+    background: var(--info-container);
+    border-radius: 15px;
+    border-color: color-mix(in srgb, var(--info-container), black 80%);
+    overflow: hidden;
+    padding: 20px;
+    margin-top: 20px;
 }

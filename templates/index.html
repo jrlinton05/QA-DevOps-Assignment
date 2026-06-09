@@ -1,5 +1,43 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Hello I am the index page</h1>
+<h1>Amazon's Self-Service Portal for Managing Prime Video Channels</h1>
+
+<div class="info-container">
+    <h2>Safe and Secure</h2>
+    <p>
+        Telescope separates users from admins; anyone can browse the channel table, but admin checks are implemented at
+        the app routing level to ensure non-admins are never given access to backend operations even if they
+        formulate their own POST request.
+    </p>
+</div>
+
+<div class="info-container">
+    <h2>Validation Where it Matters</h2>
+    <p>
+        Telescope checks all submitted names and prices before updating the database to strip whitespace and
+        maintain appropriate formatting, while psycopg2 prevents SQL injections so all data remains safe.
+    </p>
+</div>
+
+<div class="info-container">
+    <h2>Safety Without Restriction</h2>
+    <p>Telescope follows the NIST SP 800-63B guidelines when registering new users. Passwords must be longer than
+    15 characters, and no knowledge-based hints or counterproductive composition rules are enforced. All passwords
+    are hashed using bcrypt before being stored, so private data is never exposed.</p>
+</div>
+
+<div class="info-container">
+    <h2>Simple but Effective Logging and Monitoring</h2>
+    <p>Every failed login attempt, missed database connection, invalid input, and access control violation is
+    securely logged, allowing Telescope to easily evolve through quicker development.</p>
+</div>
+
+<div class="info-container">
+    <h2>Clear to Read, Easy to Understand</h2>
+    <p>Telescope's channel table can be sorted by any heading in both directions, even though free channels are
+    displayed as "Free" instead of "£0.00" for readability. The page features simple colours with intentional contrast
+    between the background and text. Every success, invalid input, and access error is clearly displayed using colour
+    coded flash messages.</p>
+</div>
 {% endblock %}
