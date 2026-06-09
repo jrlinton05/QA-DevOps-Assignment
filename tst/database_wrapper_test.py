@@ -4,7 +4,8 @@ import database_wrapper
 import pytest
 
 from schemas.constants import ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL, GET_USER_BY_USERNAME, GET_USER_BY_ID, \
-    ADD_USER
+    ADD_USER, DATABASE_CONNECTION_SUCCESS, NO_CHANNELS_FOUND_ERROR, NO_CHANNEL_NAMES_FOUND_ERROR, \
+    NO_USERNAMES_FOUND_ERROR, DATABASE_CONNECTION_ERROR
 from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException, InvalidArgumentException
 
 
@@ -25,7 +26,7 @@ def test_connect_to_db(mocker):
     database_wrapper.connect_to_db()
 
     assert database_wrapper.connection == mock_response
-    mock_logger.info.assert_called_with("Connected to database successfully")
+    mock_logger.info.assert_called_with(DATABASE_CONNECTION_SUCCESS)
 
 
 def test_exception_raised_when_connect_to_db_fails(mocker):
@@ -36,7 +37,7 @@ def test_exception_raised_when_connect_to_db_fails(mocker):
         database_wrapper.connect_to_db()
 
     assert database_wrapper.connection is None
-    mock_logger.error.assert_called_with("Failed to connect to database: connection failed")
+    mock_logger.error.assert_called_with(f"{DATABASE_CONNECTION_ERROR}: connection failed")
 
 
 def test_retries_are_attempted_when_connect_to_db_fails(mocker):
@@ -48,8 +49,8 @@ def test_retries_are_attempted_when_connect_to_db_fails(mocker):
     database_wrapper.connect_to_db()
 
     assert database_wrapper.connection == mock_response
-    mock_logger.error.assert_called_with("Failed to connect to database: connection failed")
-    mock_logger.info.assert_called_with("Connected to database successfully")
+    mock_logger.error.assert_called_with(f"{DATABASE_CONNECTION_ERROR}: connection failed")
+    mock_logger.info.assert_called_with(DATABASE_CONNECTION_SUCCESS)
 
 
 def test_get_channel_data(mocker):
@@ -137,7 +138,7 @@ def test_get_all_channels_when_database_is_empty(mocker):
     result = database_wrapper.get_all_channels()
 
     assert result == []
-    mock_logger.warning.assert_called_with("No channels were found in the database")
+    mock_logger.warning.assert_called_with(NO_CHANNELS_FOUND_ERROR)
 
 
 def test_database_connection_exception_raised_when_get_all_channels_cannot_find_connection(mocker):
@@ -192,7 +193,7 @@ def test_get_all_channel_names_when_database_is_empty(mocker):
     result = database_wrapper.get_all_channel_names()
 
     assert result == []
-    mock_logger.warning.assert_called_with("No channel names were found in the database")
+    mock_logger.warning.assert_called_with(NO_CHANNEL_NAMES_FOUND_ERROR)
 
 
 def test_database_connection_exception_raised_when_get_all_channel_names_cannot_find_connection(mocker):
@@ -570,7 +571,7 @@ def test_get_all_usernames_when_database_is_empty(mocker):
     result = database_wrapper.get_all_usernames()
 
     assert result == []
-    mock_logger.warning.assert_called_with("No usernames were found in the database")
+    mock_logger.warning.assert_called_with(NO_USERNAMES_FOUND_ERROR)
 
 
 def test_database_connection_exception_raised_when_get_all_usernames_cannot_find_connection(mocker):

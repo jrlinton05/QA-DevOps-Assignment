@@ -7,6 +7,9 @@ from flask_login import LoginManager, login_user, login_required, current_user, 
 from bcrypt import checkpw
 
 import database_wrapper
+from schemas.constants import ADMIN_ACCESS_ERROR, DATABASE_CONNECTION_ERROR, CHANNEL_CREATION_SUCCESS, \
+    CHANNEL_UPDATE_SUCCESS, CHANNEL_DELETE_SUCCESS, ACCOUNT_CREATION_SUCCESS, CHANNEL_NOT_FOUND_ERROR, \
+    INVALID_USER_DETAILS_ERROR
 from schemas.exceptions import NameAlreadyExistsException, InvalidArgumentException, DatabaseConnectionException
 from schemas.types import User
 
@@ -37,7 +40,7 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_admin:
-            flash("Access to this page requires admin permissions", "error")
+            flash(ADMIN_ACCESS_ERROR, "error")
             return redirect(url_for('channel_browser'))
         return f(*args, **kwargs)
     return decorated_function
@@ -45,7 +48,7 @@ def admin_required(f):
 
 @app.errorhandler(DatabaseConnectionException)
 def handle_db_error(e):
-    return render_template('error.html', message="Unable to connect to database"), 503
+    return render_template('error.html', message=DATABASE_CONNECTION_ERROR), 503
 
 
 @app.route('/')
@@ -68,7 +71,7 @@ def create_channel():
 
         try:
             database_wrapper.add_new_channel(channel_name, channel_price)
-            flash("Channel created successfully")
+            flash(CHANNEL_CREATION_SUCCESS)
             return redirect(url_for('channel_browser'))
         except (NameAlreadyExistsException, InvalidArgumentException) as e:
             return render_template('channel-add.html', error=str(e),
@@ -89,7 +92,7 @@ def update_channel(channel_id):
 
         try:
             database_wrapper.update_channel_details(channel_id, channel_name, channel_price)
-            flash("Channel updated successfully")
+            flash(CHANNEL_UPDATE_SUCCESS)
             return redirect(url_for('channel_browser'))
         except (NameAlreadyExistsException, InvalidArgumentException) as e:
             return render_template('channel-update.html', error=str(e),
@@ -100,7 +103,7 @@ def update_channel(channel_id):
 
     data = database_wrapper.get_channel_data(channel_id)
     if data is None:
-        flash("Channel not found", "error")
+        flash(CHANNEL_NOT_FOUND_ERROR, "error")
         return redirect(url_for('channel_browser'))
     return render_template('channel-update.html', channel_id=channel_id,
                            channel_name=data[0], channel_price=data[1])
@@ -112,7 +115,7 @@ def update_channel(channel_id):
 def delete_channel(channel_id):
     try:
         database_wrapper.delete_channel(channel_id)
-        flash("Channel deleted successfully")
+        flash(CHANNEL_DELETE_SUCCESS)
     except DatabaseConnectionException:
         raise
     except Exception as e:
@@ -131,7 +134,7 @@ def register():
 
         try:
             database_wrapper.add_new_user(username, password)
-            flash("Account created successfully")
+            flash(ACCOUNT_CREATION_SUCCESS)
             return redirect(url_for('login'))
         except NameAlreadyExistsException as e:
             return render_template('register.html', error=str(e), username=username)
@@ -156,7 +159,7 @@ def login():
             login_user(user)
             return redirect(url_for('index'))
 
-        return render_template('login.html', error="Invalid username or password", username=username)
+        return render_template('login.html', error=INVALID_USER_DETAILS_ERROR, username=username)
 
     return render_template('login.html')
 

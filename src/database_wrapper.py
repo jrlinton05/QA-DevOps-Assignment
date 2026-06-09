@@ -8,7 +8,12 @@ from logging_config import logger
 from schemas.constants import (CREATE_USERS_TABLE, CREATE_CHANNELS_TABLE, GET_CHANNEL_DATA, GET_ALL_CHANNELS,
                                GET_ALL_CHANNEL_NAMES, ADD_CHANNEL, UPDATE_CHANNEL, DELETE_CHANNEL, GET_USER_BY_USERNAME,
                                GET_USER_BY_ID,
-                               ADD_USER, GET_ALL_USERNAMES)
+                               ADD_USER, GET_ALL_USERNAMES, DATABASE_CONNECTION_ERROR, DATABASE_CONNECTION_SUCCESS,
+                               TABLE_CREATION_SUCCESS, CHANNEL_NAME_EXISTS_ERROR, USERNAME_EXISTS_ERROR,
+                               TABLE_CREATION_ERROR, NO_CHANNELS_FOUND_ERROR, CHANNEL_DATA_FETCHING_ERROR,
+                               NO_CHANNEL_NAMES_FOUND_ERROR, CHANNEL_NAME_FETCHING_ERROR, CHANNEL_CREATION_ERROR,
+                               CHANNEL_UPDATE_ERROR, USER_DETAIL_FETCHING_ERROR, NO_USERNAMES_FOUND_ERROR,
+                               USERNAME_FETCHING_ERROR, USER_CREATION_ERROR, CHANNEL_DELETE_ERROR)
 from schemas.exceptions import DatabaseConnectionException, NameAlreadyExistsException
 
 connection = None
@@ -18,13 +23,13 @@ connection = None
 def check_if_channel_name_exists(channel_name: str):
     existing_channel_names = get_all_channel_names()
     if channel_name in existing_channel_names:
-        raise NameAlreadyExistsException("Channel name already exists in the database")
+        raise NameAlreadyExistsException(CHANNEL_NAME_EXISTS_ERROR)
 
 
 def check_if_username_exists(username: str):
     existing_usernames = get_all_usernames()
     if username in existing_usernames:
-        raise NameAlreadyExistsException("Username already exists")
+        raise NameAlreadyExistsException(USERNAME_EXISTS_ERROR)
 
 
 # --- Database Connection ---
@@ -44,9 +49,9 @@ def connect_to_db():
         try:
             logger.info("Attempting to connect to database")
             connection = psycopg2.connect(os.environ["DATABASE_URL"])
-            logger.info("Connected to database successfully")
+            logger.info(DATABASE_CONNECTION_SUCCESS)
         except Exception as e:
-            error_message = f"Failed to connect to database: {e}"
+            error_message = f"{DATABASE_CONNECTION_ERROR}: {e}"
             logger.error(error_message)
             raise DatabaseConnectionException(error_message)
 
@@ -59,9 +64,9 @@ def create_tables():
             with connection.cursor() as cursor:
                 cursor.execute(CREATE_USERS_TABLE)
                 cursor.execute(CREATE_CHANNELS_TABLE)
-                logger.info("Create tables operation executed successfully")
+                logger.info(TABLE_CREATION_SUCCESS)
     except Exception as e:
-        logger.error(f"Failed to create tables: {e}")
+        logger.error(f"{TABLE_CREATION_ERROR}: {e}")
 
 
 # --- Channel Table Read Methods ---
@@ -79,7 +84,7 @@ def get_channel_data(channel_id: int) -> tuple[str, str]:
                     f"Returned data for channel_id {channel_id}: channel_name - {data[0]}, channel_price: {data[1]}")
                 return data
     except Exception as e:
-        logger.error(f"Failed to fetch channel data for channel_id {channel_id}: {e}")
+        logger.error(f"{CHANNEL_DATA_FETCHING_ERROR} for channel_id {channel_id}: {e}")
 
 
 def get_all_channels() -> list[tuple[int, str, str]]:
@@ -90,12 +95,12 @@ def get_all_channels() -> list[tuple[int, str, str]]:
                 cursor.execute(GET_ALL_CHANNELS)
                 data = cursor.fetchall()
                 if not data:
-                    logger.warning("No channels were found in the database")
+                    logger.warning(NO_CHANNELS_FOUND_ERROR)
                 else:
                     logger.info(f"Found channels in the database: {data}")
                 return data
     except Exception as e:
-        logger.error(f"Failed to fetch channel data: {e}")
+        logger.error(f"{CHANNEL_DATA_FETCHING_ERROR}: {e}")
 
 
 def get_all_channel_names() -> list[str]:
@@ -106,12 +111,12 @@ def get_all_channel_names() -> list[str]:
                 cursor.execute(GET_ALL_CHANNEL_NAMES)
                 data = [row[0] for row in cursor.fetchall()]
                 if not data:
-                    logger.warning("No channel names were found in the database")
+                    logger.warning(NO_CHANNEL_NAMES_FOUND_ERROR)
                 else:
                     logger.info(f"Found the following channel names in the database: {data}")
                 return data
     except Exception as e:
-        logger.error(f"Failed to fetch channel names: {e}")
+        logger.error(f"{CHANNEL_NAME_FETCHING_ERROR}: {e}")
         raise e
 
 
@@ -131,8 +136,8 @@ def add_new_channel(channel_name: str, channel_price: str):
                 cursor.execute(ADD_CHANNEL, (channel_name, formatted_price))
                 logger.info(f"Added new channel with name: {channel_name} and price: {formatted_price}")
     except Exception as e:
-        logger.error(f"Failed to create new channel: {e}")
-        raise Exception(f"Failed to create new channel")
+        logger.error(f"{CHANNEL_CREATION_ERROR}: {e}")
+        raise Exception(CHANNEL_CREATION_ERROR)
 
 
 # --- Channel Table Update Methods ---
@@ -158,8 +163,8 @@ def update_channel_details(channel_id: int, new_channel_name: str, new_channel_p
                     logger.info(f"Updated channel with id {channel_id}. "
                                 f"New name: {new_channel_name}. New price: {new_formatted_price}")
     except Exception as e:
-        logger.error(f"Failed to update channel with id {channel_id}: {e}")
-        raise Exception(f"Failed to update channel {channel_id}")
+        logger.error(f"{CHANNEL_UPDATE_ERROR} with id {channel_id}: {e}")
+        raise Exception(f"{CHANNEL_UPDATE_ERROR} {channel_id}")
 
 
 # --- Channel Table Delete Methods ---
@@ -174,8 +179,8 @@ def delete_channel(channel_id: int):
                 else:
                     logger.info(f"Deleted channel with id {channel_id}")
     except Exception as e:
-        logger.error(f"Failed to delete channel with id {channel_id}: {e}")
-        raise Exception(f"Failed to delete channel {channel_id}")
+        logger.error(f"{CHANNEL_DELETE_ERROR} with id {channel_id}: {e}")
+        raise Exception(f"{CHANNEL_DELETE_ERROR} {channel_id}")
 
 
 # --- User Table Read Methods ---
@@ -187,7 +192,7 @@ def get_user_by_username(username: str) -> tuple[int, str, bool]:
                 cursor.execute(GET_USER_BY_USERNAME, (username,))
                 return cursor.fetchone()
     except Exception as e:
-        logger.error(f"Error occurred while fetching user details: {e}")
+        logger.error(f"{USER_DETAIL_FETCHING_ERROR}: {e}")
         raise e
 
 
@@ -199,7 +204,7 @@ def get_user_by_user_id(user_id: int) -> tuple[str, bool]:
                 cursor.execute(GET_USER_BY_ID, (user_id,))
                 return cursor.fetchone()
     except Exception as e:
-        logger.error(f"Error occurred while fetching user details: {e}")
+        logger.error(f"{USER_DETAIL_FETCHING_ERROR}: {e}")
         raise e
 
 
@@ -211,12 +216,12 @@ def get_all_usernames() -> list[str]:
                 cursor.execute(GET_ALL_USERNAMES)
                 data = [row[0] for row in cursor.fetchall()]
                 if not data:
-                    logger.warning("No usernames were found in the database")
+                    logger.warning(NO_USERNAMES_FOUND_ERROR)
                 else:
                     logger.info(f"Found the following usernames in the database: {data}")
                 return data
     except Exception as e:
-        logger.error(f"Failed to fetch usernames: {e}")
+        logger.error(f"{USERNAME_FETCHING_ERROR}: {e}")
         raise e
 
 
@@ -235,5 +240,5 @@ def add_new_user(username: str, password: str):
                 cursor.execute(ADD_USER, (username, hashed_password, False))
                 logger.info(f"Added new user: {username}")
     except Exception as e:
-        logger.error(f"Failed to create new user: {e}")
-        raise Exception("Failed to create new user")
+        logger.error(f"{USER_CREATION_ERROR}: {e}")
+        raise Exception(USER_CREATION_ERROR)

@@ -1,5 +1,8 @@
 import pytest
 from app import app
+from schemas.constants import ADMIN_ACCESS_ERROR, CHANNEL_CREATION_SUCCESS, CHANNEL_UPDATE_SUCCESS, \
+    CHANNEL_DELETE_SUCCESS, CHANNEL_NOT_FOUND_ERROR, INVALID_USER_DETAILS_ERROR, CHANNEL_NAME_EXISTS_ERROR, \
+    USERNAME_EXISTS_ERROR
 from schemas.exceptions import DatabaseConnectionException, InvalidArgumentException, NameAlreadyExistsException
 
 
@@ -68,7 +71,7 @@ def test_create_channel_post_success(admin_client, mocker):
         'channel_price': '24.99'
     }, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Channel created successfully" in response.data
+    assert CHANNEL_CREATION_SUCCESS.encode() in response.data
 
 
 def test_create_channel_post_invalid_data(admin_client, mocker):
@@ -84,13 +87,13 @@ def test_create_channel_post_invalid_data(admin_client, mocker):
 
 def test_create_channel_post_duplicate_name(admin_client, mocker):
     mocker.patch("database_wrapper.add_new_channel",
-                 side_effect=NameAlreadyExistsException("Channel name already exists in the database"))
+                 side_effect=NameAlreadyExistsException(CHANNEL_NAME_EXISTS_ERROR))
     response = admin_client.post('/channels/create', data={
         'channel_name': 'DAZN',
         'channel_price': '24.99'
     })
     assert response.status_code == 200
-    assert b"Channel name already exists in the database" in response.data
+    assert CHANNEL_NAME_EXISTS_ERROR.encode() in response.data
 
 
 def test_update_channel_get_returns_200(admin_client, mocker):
@@ -116,7 +119,7 @@ def test_update_channel_get_redirects_when_channel_not_found(admin_client, mocke
     mocker.patch("database_wrapper.get_all_channels", return_value=[])
     response = admin_client.get('/channels/999/edit', follow_redirects=True)
     assert response.status_code == 200
-    assert b"Channel not found" in response.data
+    assert CHANNEL_NOT_FOUND_ERROR.encode() in response.data
 
 
 def test_update_channel_post_success(admin_client, mocker):
@@ -127,7 +130,7 @@ def test_update_channel_post_success(admin_client, mocker):
         'channel_price': '29.99'
     }, follow_redirects=True)
     assert response.status_code == 200
-    assert b"Channel updated successfully" in response.data
+    assert CHANNEL_UPDATE_SUCCESS.encode() in response.data
 
 
 def test_update_channel_post_invalid_data(admin_client, mocker):
@@ -143,13 +146,13 @@ def test_update_channel_post_invalid_data(admin_client, mocker):
 
 def test_update_channel_post_duplicate_name(admin_client, mocker):
     mocker.patch("database_wrapper.update_channel_details",
-                 side_effect=NameAlreadyExistsException("Channel name already exists in the database"))
+                 side_effect=NameAlreadyExistsException(CHANNEL_NAME_EXISTS_ERROR))
     response = admin_client.post('/channels/1/edit', data={
         'channel_name': 'DAZN',
         'channel_price': '24.99'
     })
     assert response.status_code == 200
-    assert b"Channel name already exists in the database" in response.data
+    assert CHANNEL_NAME_EXISTS_ERROR.encode() in response.data
 
 
 def test_update_channel_returns_503_when_db_unavailable(admin_client, mocker):
@@ -163,14 +166,14 @@ def test_delete_channel_success(admin_client, mocker):
     mocker.patch("database_wrapper.get_all_channels", return_value=[])
     response = admin_client.post('/channels/1/delete', follow_redirects=True)
     assert response.status_code == 200
-    assert b"Channel deleted successfully" in response.data
+    assert CHANNEL_DELETE_SUCCESS.encode() in response.data
 
 
 def test_delete_channel_redirects_when_not_admin(logged_in_client, mocker):
     mocker.patch("database_wrapper.get_all_channels", return_value=[])
     response = logged_in_client.post('/channels/1/delete', follow_redirects=True)
     assert response.status_code == 200
-    assert b"Access to this page requires admin permissions" in response.data
+    assert ADMIN_ACCESS_ERROR.encode() in response.data
 
 
 def test_delete_channel_redirects_when_not_logged_in(client):
@@ -209,13 +212,13 @@ def test_register_post_success(client, mocker):
 
 def test_register_post_duplicate_username(client, mocker):
     mocker.patch("database_wrapper.add_new_user",
-                 side_effect=NameAlreadyExistsException("Username already exists"))
+                 side_effect=NameAlreadyExistsException(USERNAME_EXISTS_ERROR))
     response = client.post('/register', data={
         'username': 'testuser',
         'password': 'averylongpassword'
     })
     assert response.status_code == 200
-    assert b"Username already exists" in response.data
+    assert USERNAME_EXISTS_ERROR.encode() in response.data
 
 
 def test_register_post_invalid_data(client, mocker):
@@ -259,7 +262,7 @@ def test_login_post_invalid_credentials(client, mocker):
         'password': 'averylongpassword'
     })
     assert response.status_code == 200
-    assert b"Invalid username or password" in response.data
+    assert INVALID_USER_DETAILS_ERROR.encode() in response.data
 
 
 def test_login_post_wrong_password(client, mocker):
@@ -271,7 +274,7 @@ def test_login_post_wrong_password(client, mocker):
         'password': 'wrongpasswordhere'
     })
     assert response.status_code == 200
-    assert b"Invalid username or password" in response.data
+    assert INVALID_USER_DETAILS_ERROR.encode() in response.data
 
 
 def test_login_redirects_when_already_logged_in(logged_in_client):

@@ -1,8 +1,9 @@
 import logging
 
+from schemas.constants import LOG_MESSAGE_FORMAT
 
 logging.basicConfig(
     level=logging.DEBUG,
-    format="%(asctime)s | %(levelname)s: %(message)s"
+    format=LOG_MESSAGE_FORMAT
 )
 logger = logging.getLogger(__name__)
