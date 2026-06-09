@@ -4,7 +4,9 @@
 <div class="table-container">
     <div class="table-header">
         <h2>Channels</h2>
-        <a href="{{ url_for('create_channel') }}"><button class="create-btn">Create Channel</button></a>
+        {% if user.is_admin %}
+            <a href="{{ url_for('create_channel') }}"><button class="create-btn">Create Channel</button></a>
+        {% endif %}
     </div>
     <table class="sortable">
         <thead>
@@ -12,7 +14,9 @@
                 <th>ID</th>
                 <th>Name</th>
                 <th>Monthly Price</th>
-                <th class="no-sort"></th>
+                {% if user.is_admin %}
+                    <th class="no-sort"></th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -25,8 +29,10 @@
                 {% else %}
                     <td data-sort="{{ row[2] }}">£{{ row[2] }}</td>
                 {% endif %}
-                <td class="edit-button-row"><a href="{{ url_for('update_channel', channel_id=row[0]) }}">
-                    <button class="create-btn">Edit Channel</button></a></td>
+                {% if user.is_admin %}
+                    <td class="edit-button-row"><a href="{{ url_for('update_channel', channel_id=row[0]) }}">
+                        <button class="create-btn">Edit Channel</button></a></td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>

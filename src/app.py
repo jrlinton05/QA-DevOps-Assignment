@@ -1,4 +1,6 @@
 import os
+from functools import wraps
+
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, url_for, redirect
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
@@ -31,6 +33,16 @@ def load_user(user_id):
     return None
 
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            flash("Access to this page requires admin permissions", "error")
+            return redirect(url_for('channel_browser'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
 @app.errorhandler(DatabaseConnectionException)
 def handle_db_error(e):
     return render_template('error.html', message="Unable to connect to database"), 503
@@ -48,6 +60,7 @@ def channel_browser():
 
 @app.route('/channels/create', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def create_channel():
     if request.method == 'POST':
         channel_name = request.form['channel_name']
@@ -68,6 +81,7 @@ def create_channel():
 
 @app.route('/channels/<int:channel_id>/edit', methods=['GET', 'POST'])
 @login_required
+@admin_required
 def update_channel(channel_id):
     if request.method == 'POST':
         channel_name = request.form['channel_name']
@@ -94,6 +108,7 @@ def update_channel(channel_id):
 
 @app.route('/channels/<int:channel_id>/delete', methods=['POST'])
 @login_required
+@admin_required
 def delete_channel(channel_id):
     try:
         database_wrapper.delete_channel(channel_id)

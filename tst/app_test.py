@@ -18,6 +18,14 @@ def logged_in_client(client, mocker):
     yield client
 
 
+@pytest.fixture
+def admin_client(client, mocker):
+    with client.session_transaction() as session:
+        session['_user_id'] = '1'
+    mocker.patch("database_wrapper.get_user_by_user_id", return_value=("testuser", True))
+    yield client
+
+
 def test_index_returns_200(client):
     response = client.get('/')
     assert response.status_code == 200
@@ -35,9 +43,15 @@ def test_channel_browser_returns_503_when_db_unavailable(client, mocker):
     assert response.status_code == 503
 
 
-def test_create_channel_get_returns_200(logged_in_client):
-    response = logged_in_client.get('/channels/create')
+def test_create_channel_get_returns_200(admin_client):
+    response = admin_client.get('/channels/create')
     assert response.status_code == 200
+
+
+def test_create_channel_redirects_when_not_admin(logged_in_client):
+    response = logged_in_client.get('/channels/create')
+    assert response.status_code == 302
+    assert '/channels' in response.headers['Location']
 
 
 def test_create_channel_redirects_when_not_logged_in(client):
@@ -46,20 +60,21 @@ def test_create_channel_redirects_when_not_logged_in(client):
     assert '/login' in response.headers['Location']
 
 
-def test_create_channel_post_success(logged_in_client, mocker):
+def test_create_channel_post_success(admin_client, mocker):
     mocker.patch("database_wrapper.add_new_channel")
-    response = logged_in_client.post('/channels/create', data={
+    mocker.patch("database_wrapper.get_all_channels", return_value=[])
+    response = admin_client.post('/channels/create', data={
         'channel_name': 'DAZN',
         'channel_price': '24.99'
-    }, follow_redirects=False)
-    assert response.status_code == 302
-    assert '/channels' in response.headers['Location']
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Channel created successfully" in response.data
 
 
-def test_create_channel_post_invalid_data(logged_in_client, mocker):
+def test_create_channel_post_invalid_data(admin_client, mocker):
     mocker.patch("database_wrapper.add_new_channel",
                  side_effect=InvalidArgumentException("Channel Name is invalid"))
-    response = logged_in_client.post('/channels/create', data={
+    response = admin_client.post('/channels/create', data={
         'channel_name': '',
         'channel_price': '24.99'
     })
@@ -67,10 +82,10 @@ def test_create_channel_post_invalid_data(logged_in_client, mocker):
     assert b"Channel Name is invalid" in response.data
 
 
-def test_create_channel_post_duplicate_name(logged_in_client, mocker):
+def test_create_channel_post_duplicate_name(admin_client, mocker):
     mocker.patch("database_wrapper.add_new_channel",
                  side_effect=NameAlreadyExistsException("Channel name already exists in the database"))
-    response = logged_in_client.post('/channels/create', data={
+    response = admin_client.post('/channels/create', data={
         'channel_name': 'DAZN',
         'channel_price': '24.99'
     })
@@ -78,10 +93,16 @@ def test_create_channel_post_duplicate_name(logged_in_client, mocker):
     assert b"Channel name already exists in the database" in response.data
 
 
-def test_update_channel_get_returns_200(logged_in_client, mocker):
+def test_update_channel_get_returns_200(admin_client, mocker):
     mocker.patch("database_wrapper.get_channel_data", return_value=("DAZN", "24.99"))
-    response = logged_in_client.get('/channels/1/edit')
+    response = admin_client.get('/channels/1/edit')
     assert response.status_code == 200
+
+
+def test_update_channel_redirects_when_not_admin(logged_in_client):
+    response = logged_in_client.get('/channels/1/edit')
+    assert response.status_code == 302
+    assert '/channels' in response.headers['Location']
 
 
 def test_update_channel_redirects_when_not_logged_in(client):
@@ -90,27 +111,29 @@ def test_update_channel_redirects_when_not_logged_in(client):
     assert '/login' in response.headers['Location']
 
 
-def test_update_channel_get_redirects_when_channel_not_found(logged_in_client, mocker):
+def test_update_channel_get_redirects_when_channel_not_found(admin_client, mocker):
     mocker.patch("database_wrapper.get_channel_data", return_value=None)
-    response = logged_in_client.get('/channels/999/edit', follow_redirects=False)
-    assert response.status_code == 302
-    assert '/channels' in response.headers['Location']
+    mocker.patch("database_wrapper.get_all_channels", return_value=[])
+    response = admin_client.get('/channels/999/edit', follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Channel not found" in response.data
 
 
-def test_update_channel_post_success(logged_in_client, mocker):
+def test_update_channel_post_success(admin_client, mocker):
     mocker.patch("database_wrapper.update_channel_details")
-    response = logged_in_client.post('/channels/1/edit', data={
+    mocker.patch("database_wrapper.get_all_channels", return_value=[])
+    response = admin_client.post('/channels/1/edit', data={
         'channel_name': 'DAZN',
         'channel_price': '29.99'
-    }, follow_redirects=False)
-    assert response.status_code == 302
-    assert '/channels' in response.headers['Location']
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Channel updated successfully" in response.data
 
 
-def test_update_channel_post_invalid_data(logged_in_client, mocker):
+def test_update_channel_post_invalid_data(admin_client, mocker):
     mocker.patch("database_wrapper.update_channel_details",
                  side_effect=InvalidArgumentException("Channel Name is invalid"))
-    response = logged_in_client.post('/channels/1/edit', data={
+    response = admin_client.post('/channels/1/edit', data={
         'channel_name': '',
         'channel_price': '24.99'
     })
@@ -118,10 +141,10 @@ def test_update_channel_post_invalid_data(logged_in_client, mocker):
     assert b"Channel Name is invalid" in response.data
 
 
-def test_update_channel_post_duplicate_name(logged_in_client, mocker):
+def test_update_channel_post_duplicate_name(admin_client, mocker):
     mocker.patch("database_wrapper.update_channel_details",
                  side_effect=NameAlreadyExistsException("Channel name already exists in the database"))
-    response = logged_in_client.post('/channels/1/edit', data={
+    response = admin_client.post('/channels/1/edit', data={
         'channel_name': 'DAZN',
         'channel_price': '24.99'
     })
@@ -129,17 +152,25 @@ def test_update_channel_post_duplicate_name(logged_in_client, mocker):
     assert b"Channel name already exists in the database" in response.data
 
 
-def test_update_channel_returns_503_when_db_unavailable(logged_in_client, mocker):
+def test_update_channel_returns_503_when_db_unavailable(admin_client, mocker):
     mocker.patch("database_wrapper.get_channel_data", side_effect=DatabaseConnectionException("fail"))
-    response = logged_in_client.get('/channels/1/edit')
+    response = admin_client.get('/channels/1/edit')
     assert response.status_code == 503
 
 
-def test_delete_channel_success(logged_in_client, mocker):
+def test_delete_channel_success(admin_client, mocker):
     mocker.patch("database_wrapper.delete_channel")
-    response = logged_in_client.post('/channels/1/delete', follow_redirects=False)
-    assert response.status_code == 302
-    assert '/channels' in response.headers['Location']
+    mocker.patch("database_wrapper.get_all_channels", return_value=[])
+    response = admin_client.post('/channels/1/delete', follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Channel deleted successfully" in response.data
+
+
+def test_delete_channel_redirects_when_not_admin(logged_in_client, mocker):
+    mocker.patch("database_wrapper.get_all_channels", return_value=[])
+    response = logged_in_client.post('/channels/1/delete', follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Access to this page requires admin permissions" in response.data
 
 
 def test_delete_channel_redirects_when_not_logged_in(client):
@@ -148,15 +179,16 @@ def test_delete_channel_redirects_when_not_logged_in(client):
     assert '/login' in response.headers['Location']
 
 
-def test_delete_channel_returns_503_when_db_unavailable(logged_in_client, mocker):
+def test_delete_channel_returns_503_when_db_unavailable(admin_client, mocker):
     mocker.patch("database_wrapper.delete_channel", side_effect=DatabaseConnectionException("fail"))
-    response = logged_in_client.post('/channels/1/delete')
+    response = admin_client.post('/channels/1/delete')
     assert response.status_code == 503
 
 
-def test_delete_channel_flashes_error_on_failure(logged_in_client, mocker):
+def test_delete_channel_flashes_error_on_failure(admin_client, mocker):
     mocker.patch("database_wrapper.delete_channel", side_effect=Exception("Failed to delete channel 1"))
-    response = logged_in_client.post('/channels/1/delete', follow_redirects=True)
+    mocker.patch("database_wrapper.get_all_channels", return_value=[])
+    response = admin_client.post('/channels/1/delete', follow_redirects=True)
     assert b"Failed to delete channel 1" in response.data
 
 
