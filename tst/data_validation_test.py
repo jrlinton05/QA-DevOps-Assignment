@@ -3,6 +3,7 @@ import data_validation
 from schemas.exceptions import InvalidArgumentException
 
 
+# --- Validate Channel Data ---
 def test_validate_channel_data_with_free_channel():
     data_validation.validate_channel_data("DAZN", "0.00")
 
@@ -50,7 +51,7 @@ def test_validate_channel_data_raises_exception_when_price_has_more_than_two_dec
         data_validation.validate_channel_data("DAZN", "9.999")
 
 
-# --- validate_user_data ---
+# --- Validate User Data ---
 def test_validate_user_data_with_valid_data():
     data_validation.validate_user_data("testuser", "averylongpassword")
 

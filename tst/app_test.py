@@ -6,6 +6,7 @@ from schemas.constants import ADMIN_ACCESS_ERROR, CHANNEL_CREATION_SUCCESS, CHAN
 from schemas.exceptions import DatabaseConnectionException, InvalidArgumentException, NameAlreadyExistsException
 
 
+# --- Client Fixtures ---
 @pytest.fixture
 def client():
     app.config['TESTING'] = True
@@ -29,11 +30,13 @@ def admin_client(client, mocker):
     yield client
 
 
+# --- Index ---
 def test_index_returns_200(client):
     response = client.get('/')
     assert response.status_code == 200
 
 
+# --- Channel Browser ---
 def test_channel_browser_returns_200(client, mocker):
     mocker.patch("database_wrapper.get_all_channels", return_value=[])
     response = client.get('/channels')
@@ -46,6 +49,7 @@ def test_channel_browser_returns_503_when_db_unavailable(client, mocker):
     assert response.status_code == 503
 
 
+# --- Create Channel ---
 def test_create_channel_get_returns_200(admin_client):
     response = admin_client.get('/channels/create')
     assert response.status_code == 200
@@ -96,6 +100,7 @@ def test_create_channel_post_duplicate_name(admin_client, mocker):
     assert CHANNEL_NAME_EXISTS_ERROR.encode() in response.data
 
 
+# --- Update Channel ---
 def test_update_channel_get_returns_200(admin_client, mocker):
     mocker.patch("database_wrapper.get_channel_data", return_value=("DAZN", "24.99"))
     response = admin_client.get('/channels/1/edit')
@@ -161,6 +166,7 @@ def test_update_channel_returns_503_when_db_unavailable(admin_client, mocker):
     assert response.status_code == 503
 
 
+# --- Delete Channel ---
 def test_delete_channel_success(admin_client, mocker):
     mocker.patch("database_wrapper.delete_channel")
     mocker.patch("database_wrapper.get_all_channels", return_value=[])
@@ -195,6 +201,7 @@ def test_delete_channel_flashes_error_on_failure(admin_client, mocker):
     assert b"Failed to delete channel 1" in response.data
 
 
+# --- Register User ---
 def test_register_get_returns_200(client):
     response = client.get('/register')
     assert response.status_code == 200
@@ -238,6 +245,7 @@ def test_register_redirects_when_already_logged_in(logged_in_client):
     assert '/' == response.headers['Location']
 
 
+# --- Log In User ---
 def test_login_get_returns_200(client):
     response = client.get('/login')
     assert response.status_code == 200
@@ -283,6 +291,7 @@ def test_login_redirects_when_already_logged_in(logged_in_client):
     assert '/' == response.headers['Location']
 
 
+# --- Log Out User ---
 def test_logout_redirects_to_index(logged_in_client):
     response = logged_in_client.post('/logout', follow_redirects=False)
     assert response.status_code == 302

@@ -35,6 +35,12 @@ def check_if_username_exists(username: str):
 # --- Database Connection ---
 @retry(stop_max_attempt_number=5, wait_exponential_multiplier=1000)
 def connect_to_db():
+    """Attempts to connect to the PostgreSQL database with automated retries.
+
+    Stale connections are tested for to ensure connection remains fresh.
+
+    Raises DatabaseConnectionException if a connection could not be formed.
+    """
     global connection
 
     # Test connection to database
@@ -58,6 +64,7 @@ def connect_to_db():
 
 # --- Table Creation ---
 def create_tables():
+    """Creates all necessary tables in the database if they do not already exist."""
     connect_to_db()
     try:
         with connection:
@@ -71,6 +78,7 @@ def create_tables():
 
 # --- Channel Table Read Methods ---
 def get_channel_data(channel_id: int) -> tuple[str, str]:
+    """Returns a tuple containing the channel name followed by channel price for the given channel id."""
     connect_to_db()
     try:
         with connection:
@@ -88,6 +96,7 @@ def get_channel_data(channel_id: int) -> tuple[str, str]:
 
 
 def get_all_channels() -> list[tuple[int, str, str]]:
+    """Returns a list of tuples each containing a channel id, channel name, and channel price."""
     connect_to_db()
     try:
         with connection:
@@ -104,6 +113,7 @@ def get_all_channels() -> list[tuple[int, str, str]]:
 
 
 def get_all_channel_names() -> list[str]:
+    """Returns a list of all channel names."""
     connect_to_db()
     try:
         with connection:
@@ -122,6 +132,7 @@ def get_all_channel_names() -> list[str]:
 
 # --- Channel Table Create Methods ---
 def add_new_channel(channel_name: str, channel_price: str):
+    """Validates the given channel data before adding a new entry to the channels table."""
     channel_name = channel_name.strip()
     channel_price = channel_price.strip()
 
@@ -142,6 +153,7 @@ def add_new_channel(channel_name: str, channel_price: str):
 
 # --- Channel Table Update Methods ---
 def update_channel_details(channel_id: int, new_channel_name: str, new_channel_price: str):
+    """Validates the given channel data before updating the relevant row in the channels table."""
     new_channel_name = new_channel_name.strip()
     new_channel_price = new_channel_price.strip()
 
@@ -185,6 +197,7 @@ def delete_channel(channel_id: int):
 
 # --- User Table Read Methods ---
 def get_user_by_username(username: str) -> tuple[int, str, bool]:
+    """Returns the user id, password, and admin status of the given username."""
     connect_to_db()
     try:
         with connection:
@@ -197,6 +210,7 @@ def get_user_by_username(username: str) -> tuple[int, str, bool]:
 
 
 def get_user_by_user_id(user_id: int) -> tuple[str, bool]:
+    """Returns the username and admin status for the given user id."""
     connect_to_db()
     try:
         with connection:
@@ -209,6 +223,7 @@ def get_user_by_user_id(user_id: int) -> tuple[str, bool]:
 
 
 def get_all_usernames() -> list[str]:
+    """Returns a list of all existing usernames."""
     connect_to_db()
     try:
         with connection:
@@ -227,6 +242,7 @@ def get_all_usernames() -> list[str]:
 
 # --- User Table Create Methods ---
 def add_new_user(username: str, password: str):
+    """Validates the given user details before adding a new entry to the users table."""
     username = username.strip()
 
     data_validation.validate_user_data(username, password)

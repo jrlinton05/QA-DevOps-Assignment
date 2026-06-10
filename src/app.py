@@ -23,6 +23,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 
+# --- User Handling ---
 @app.context_processor
 def inject_user():
     return dict(user=current_user)
@@ -30,6 +31,7 @@ def inject_user():
 
 @login_manager.user_loader
 def load_user(user_id):
+    """Fetch user details from the database and set the current session user."""
     user_data = database_wrapper.get_user_by_user_id(int(user_id))
     if user_data:
         return User(user_id=int(user_id), username=user_data[0], is_admin=user_data[1])
@@ -37,6 +39,7 @@ def load_user(user_id):
 
 
 def admin_required(f):
+    """Redirects to the channel browser if the current user does not have admin permissions."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_admin:
@@ -46,11 +49,13 @@ def admin_required(f):
     return decorated_function
 
 
+# --- Error Handling ---
 @app.errorhandler(DatabaseConnectionException)
 def handle_db_error(e):
     return render_template('error.html', message=DATABASE_CONNECTION_ERROR), 503
 
 
+# --- App Routing ---
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -61,10 +66,16 @@ def channel_browser():
     return render_template('channel-browser.html', channel_data=database_wrapper.get_all_channels())
 
 
+# --- Channel Management ---
 @app.route('/channels/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def create_channel():
+    """Handles the use of the channel creation form.
+
+    GET: Display the channel creation form.
+    POST: Validate the entered information and create a new channel.
+    """
     if request.method == 'POST':
         channel_name = request.form['channel_name']
         channel_price = request.form['channel_price']
@@ -86,6 +97,11 @@ def create_channel():
 @login_required
 @admin_required
 def update_channel(channel_id):
+    """Handles the use of the channel update form.
+
+    GET: Display the channel update form.
+    POST: Validate the entered information and update the appropriate channel.
+    """
     if request.method == 'POST':
         channel_name = request.form['channel_name']
         channel_price = request.form['channel_price']
@@ -113,6 +129,7 @@ def update_channel(channel_id):
 @login_required
 @admin_required
 def delete_channel(channel_id):
+    """Routes POST requests towards the database wrapper for deleting channels."""
     try:
         database_wrapper.delete_channel(channel_id)
         flash(CHANNEL_DELETE_SUCCESS)
@@ -123,8 +140,14 @@ def delete_channel(channel_id):
     return redirect(url_for('channel_browser'))
 
 
+# --- User Registration ---
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """Handles the use of the user registration form.
+
+    GET: Display the user registration form.
+    POST: Validate the entered information and create a new user.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
@@ -146,6 +169,11 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Handles the use of the login page.
+
+    GET: Display the login form.
+    POST: Validate the entered information and assign the current session user accordingly.
+    """
     if current_user.is_authenticated:
         return redirect(url_for('index'))
 
@@ -170,5 +198,6 @@ def logout():
     return redirect(url_for('index'))
 
 
+# Allows local hosting for testing purposes
 if __name__ == '__main__':
     app.run()

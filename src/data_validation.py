@@ -3,6 +3,10 @@ from logging_config import logger
 
 
 def validate_channel_data(channel_name: str, channel_price: str):
+    """Validates the provided channel data, raising an appropriate exception if invalid.
+
+    Raises InvalidArgumentException with user-friendly error message if any data is invalid.
+    """
     # Check values are not empty and do not exceed data table limitations
     if not channel_name or len(channel_name) > 100:
         error_message = f"Channel Name {channel_name} is invalid"
@@ -32,6 +36,10 @@ def validate_channel_data(channel_name: str, channel_price: str):
 
 
 def validate_user_data(username: str, password: str):
+    """Validates the provided user data based on NIST guidelines, raising an appropriate exception if invalid.
+
+    Raises InvalidArgumentException with user-friendly error message if any data is invalid.
+    """
     if not username or len(username) > 20:
         error_message = f"Username is invalid"
         logger.warning(error_message)

@@ -14,10 +14,14 @@ load_dotenv()
 
 @pytest.fixture(autouse=True)
 def setup(mocker):
+    # Remove database connection before each test to prevent unit tests from affecting each other
     database_wrapper.connection = None
+
+    # Mock sleep method to skip the automated retries attempted on database connection failures
     mocker.patch("time.sleep")
 
 
+# --- Connect to Database ---
 def test_connect_to_db(mocker):
     mock_response = mocker.Mock()
     mocker.patch("database_wrapper.psycopg2.connect", return_value=mock_response)
@@ -53,6 +57,7 @@ def test_retries_are_attempted_when_connect_to_db_fails(mocker):
     mock_logger.info.assert_called_with(DATABASE_CONNECTION_SUCCESS)
 
 
+# --- Get Channel Data ---
 def test_get_channel_data(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
@@ -92,6 +97,7 @@ def test_database_connection_exception_raised_when_get_channel_data_cannot_find_
         database_wrapper.get_channel_data(1)
 
 
+# --- Get All Channels ---
 def test_get_all_channels_returns_single_value(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
@@ -148,6 +154,7 @@ def test_database_connection_exception_raised_when_get_all_channels_cannot_find_
         database_wrapper.get_all_channels()
 
 
+# --- Get All Channel Names ---
 def test_get_all_channel_names_returns_single_value(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
@@ -203,6 +210,7 @@ def test_database_connection_exception_raised_when_get_all_channel_names_cannot_
         database_wrapper.get_all_channel_names()
 
 
+# --- Add New Channel ---
 def test_add_new_channel(mocker):
     mock_cursor = mocker.MagicMock()
     mock_cursor.fetchall.return_value = [("Existing Channel",)]
@@ -309,6 +317,7 @@ def test_database_connection_exception_raised_when_add_new_channel_cannot_find_c
         database_wrapper.add_new_channel("DAZN", "24.99")
 
 
+# --- Update Channel ---
 def test_update_channel_details(mocker):
     mock_cursor = mocker.MagicMock()
     mock_cursor.rowcount = 1
@@ -419,6 +428,7 @@ def test_database_connection_exception_raised_when_update_channel_details_cannot
         database_wrapper.update_channel_details(1, "DAZN", "24.99")
 
 
+# --- Delete Channel ---
 def test_delete_channel(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
@@ -458,6 +468,7 @@ def test_database_connection_exception_raised_when_delete_channel_cannot_find_co
         database_wrapper.delete_channel(1)
 
 
+# --- Get User by Username ---
 def test_get_user_by_username(mocker):
     mock_cursor = mocker.MagicMock()
     mock_cursor.fetchone.return_value = (1, "$2b$12$hashedpassword", False)
@@ -492,6 +503,7 @@ def test_database_connection_exception_raised_when_get_user_by_username_cannot_f
         database_wrapper.get_user_by_username("testuser")
 
 
+# --- Get User by User ID ---
 def test_get_user_by_user_id(mocker):
     mock_cursor = mocker.MagicMock()
     mock_cursor.fetchone.return_value = ("testuser", False)
@@ -526,6 +538,7 @@ def test_database_connection_exception_raised_when_get_user_by_user_id_cannot_fi
         database_wrapper.get_user_by_user_id(1)
 
 
+# --- Get All Usernames ---
 def test_get_all_usernames_returns_single_value(mocker):
     mock_logger = mocker.patch("database_wrapper.logger")
 
@@ -581,6 +594,7 @@ def test_database_connection_exception_raised_when_get_all_usernames_cannot_find
         database_wrapper.get_all_usernames()
 
 
+# --- Add New User ---
 def test_add_new_user(mocker):
     mock_cursor = mocker.MagicMock()
     mock_cursor.fetchall.return_value = [("existinguser",)]
