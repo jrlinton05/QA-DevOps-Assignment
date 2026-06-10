@@ -267,7 +267,8 @@ a {
     background: var(--table-header);
     color: var(--table-text);
     border-radius: 15px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     padding: 20px 20px;
 }
 
