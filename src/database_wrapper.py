@@ -22,13 +22,16 @@ connection = None
 # --- Validation ---
 def check_if_channel_name_exists(channel_name: str):
     existing_channel_names = get_all_channel_names()
-    if channel_name in existing_channel_names:
+    lowercase_channel_names = [name.lower() for name in existing_channel_names]
+
+    if channel_name.lower() in lowercase_channel_names:
         raise NameAlreadyExistsException(CHANNEL_NAME_EXISTS_ERROR)
 
 
 def check_if_username_exists(username: str):
     existing_usernames = get_all_usernames()
-    if username in existing_usernames:
+    lowercase_usernames = [name.lower() for name in existing_usernames]
+    if username.lower() in lowercase_usernames:
         raise NameAlreadyExistsException(USERNAME_EXISTS_ERROR)
 
 
