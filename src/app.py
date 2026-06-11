@@ -3,6 +3,8 @@ from functools import wraps
 
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, url_for, redirect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
 from flask_wtf import CSRFProtect
 from bcrypt import checkpw
@@ -28,6 +30,9 @@ login_manager.login_view = 'login'
 
 # Generate anti-Cross-Site-Request-Forgery token to prevent attacks from foreign sources
 csrf = CSRFProtect(app)
+
+# Initialise flask limiter to prevent brute force attacks
+limiter = Limiter(app=app, key_func=get_remote_address)
 
 
 # --- User Handling ---
@@ -60,6 +65,12 @@ def admin_required(f):
 @app.errorhandler(DatabaseConnectionException)
 def handle_db_error(e):
     return render_template('error.html', message=DATABASE_CONNECTION_ERROR), 503
+
+
+@app.errorhandler(429)
+def rate_limit_exceeded(e):
+    return render_template('error.html',
+                           message="Too many requests. Please try again in a minute."), 429
 
 
 # --- App Routing ---
@@ -149,6 +160,7 @@ def delete_channel(channel_id):
 
 # --- User Registration ---
 @app.route('/register', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def register():
     """Handles the use of the user registration form.
 
@@ -175,6 +187,7 @@ def register():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")
 def login():
     """Handles the use of the login page.
 
