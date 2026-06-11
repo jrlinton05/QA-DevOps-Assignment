@@ -23,6 +23,12 @@ load_dotenv()
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 app.secret_key = os.environ["SECRET_KEY"]
 
+# Secure session by protecting cookies and adding timeouts
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('FLASK_ENV') != 'development'
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = 1800
+
 # Initialise the flask login manager
 login_manager = LoginManager()
 login_manager.init_app(app)
