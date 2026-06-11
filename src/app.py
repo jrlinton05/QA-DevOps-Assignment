@@ -35,6 +35,19 @@ csrf = CSRFProtect(app)
 limiter = Limiter(app=app, key_func=get_remote_address)
 
 
+# Prevent multiple common attacks by adding headers to the response
+@app.after_request
+def set_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'  # Prevents MIME sniffing attacks
+    response.headers['X-Frame-Options'] = 'DENY'  # Prevents clickjacking
+    response.headers['X-XSS-Protection'] = '1; mode=block'  # Prevents reflected XSS attacks
+    response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'  # Enforces HTTPS
+    response.headers['Content-Security-Policy'] =\
+        ("default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' "
+         "cdn.jsdelivr.net fonts.googleapis.com; font-src fonts.gstatic.com")  # Allowlist for necessary loaded content
+    return response
+
+
 # --- User Handling ---
 @app.context_processor
 def inject_user():
