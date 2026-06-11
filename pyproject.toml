@@ -6,6 +6,7 @@ requires-python = ">=3.9"
 dependencies = [
     "flask",
     "flask-login",
+    "flask_wtf",
     "gunicorn",
     "psycopg2-binary",
     "python-dotenv",

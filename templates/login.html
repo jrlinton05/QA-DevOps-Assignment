@@ -4,6 +4,8 @@
 <h1>Login</h1>
 <h3>New to Telescope? Register <a href="{{ url_for('register') }}">here</a></h3>
 <form method="POST" action="{{ url_for('login') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
   <label for="username">Username</label>
   <input type="text" id="username" name="username" maxlength="20" value="{{ username or '' }}" required>
 

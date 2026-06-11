@@ -20,6 +20,7 @@
             {% if user.is_authenticated %}
             <li>
               <form method="POST" action="{{ url_for('logout') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button class="text-only-btn" type="submit">Log Out</button>
               </form>
             </li>

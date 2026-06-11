@@ -4,6 +4,7 @@ from functools import wraps
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, url_for, redirect
 from flask_login import LoginManager, login_user, login_required, current_user, logout_user
+from flask_wtf import CSRFProtect
 from bcrypt import checkpw
 
 import database_wrapper
@@ -13,14 +14,20 @@ from schemas.constants import ADMIN_ACCESS_ERROR, DATABASE_CONNECTION_ERROR, CHA
 from schemas.exceptions import NameAlreadyExistsException, InvalidArgumentException, DatabaseConnectionException
 from schemas.types import User
 
+# Load environment variables to keep the database and app private and secure
 load_dotenv()
 
+# Initialise the flask web app
 app = Flask(__name__, template_folder="../templates", static_folder="../static")
 app.secret_key = os.environ["SECRET_KEY"]
 
+# Initialise the flask login manager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Generate anti-Cross-Site-Request-Forgery token to prevent attacks from foreign sources
+csrf = CSRFProtect(app)
 
 
 # --- User Handling ---

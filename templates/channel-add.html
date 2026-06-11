@@ -3,6 +3,8 @@
 {% block content %}
 <h1>Create Channel</h1>
 <form method="POST" action="{{ url_for('create_channel') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
   <label for="channel_name">Channel Name</label>
   <input type="text" id="channel_name" name="channel_name" maxlength="100" value="{{ channel_name or '' }}" required>
 
