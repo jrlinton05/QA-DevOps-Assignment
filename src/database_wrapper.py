@@ -136,9 +136,6 @@ def get_all_channel_names() -> list[str]:
 # --- Channel Table Create Methods ---
 def add_new_channel(channel_name: str, channel_price: str):
     """Validates the given channel data before adding a new entry to the channels table."""
-    channel_name = channel_name.strip()
-    channel_price = channel_price.strip()
-
     data_validation.validate_channel_data(channel_name, channel_price)
     check_if_channel_name_exists(channel_name)
 
@@ -246,8 +243,6 @@ def get_all_usernames() -> list[str]:
 # --- User Table Create Methods ---
 def add_new_user(username: str, password: str):
     """Validates the given user details before adding a new entry to the users table."""
-    username = username.strip()
-
     data_validation.validate_user_data(username, password)
     check_if_username_exists(username)
 

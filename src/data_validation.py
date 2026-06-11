@@ -7,31 +7,31 @@ def validate_channel_data(channel_name: str, channel_price: str):
 
     Raises InvalidArgumentException with user-friendly error message if any data is invalid.
     """
-    # Check values are not empty and do not exceed data table limitations
-    if not channel_name or len(channel_name) > 100:
-        error_message = f"Channel Name {channel_name} is invalid"
-        logger.warning(error_message)
-        raise InvalidArgumentException(error_message)
-    if not channel_price or len(channel_price) > 20:
-        error_message = f"Channel Price {channel_price} is invalid"
-        logger.warning(error_message)
-        raise InvalidArgumentException(error_message)
+    error_message = ""
 
-    # Check price value is valid
-    try:
-        price_as_float = float(channel_price)
-        if price_as_float < 0:
-            error_message = f"Channel Price {channel_price} must be positive"
-            logger.warning(error_message)
-            raise InvalidArgumentException(error_message)
+    if not channel_name:
+        error_message = "Channel name cannot be blank"
+    elif len(channel_name) > 100:
+        error_message = "Channel name must be 100 characters or fewer"
+    elif channel_name != channel_name.strip():
+        error_message = "Channel name may not use a space as the first or last character"
 
-        if round(price_as_float, 2) != price_as_float:
-            error_message = f"Channel Price {channel_price} must contain two decimal places at most"
-            logger.warning(error_message)
-            raise InvalidArgumentException(error_message)
-    except ValueError:
-        error_message = f"Channel Price {channel_price} is not a valid number"
-        logger.warning(error_message)
+    elif not channel_price:
+        error_message = "Channel price cannot be blank"
+    elif len(channel_price) > 20:
+        error_message = "Channel price must be 20 characters or fewer"
+    else:
+        try:
+            price_as_float = float(channel_price)
+            if price_as_float < 0:
+                error_message = "Channel price must be a positive value"
+            elif round(price_as_float, 2) != price_as_float:
+                error_message = "Channel price must contain two decimal places at most"
+        except ValueError:
+            error_message = "Channel price must be a valid number"
+
+    if error_message != "":
+        logger.warning(f"Channel validation failed: {error_message}")
         raise InvalidArgumentException(error_message)
 
 
@@ -40,11 +40,22 @@ def validate_user_data(username: str, password: str):
 
     Raises InvalidArgumentException with user-friendly error message if any data is invalid.
     """
-    if not username or len(username) > 20:
-        error_message = f"Username is invalid"
-        logger.warning(error_message)
-        raise InvalidArgumentException(error_message)
-    if not password or len(password) < 15:
-        error_message = "Password must be at least 15 characters"
-        logger.warning(error_message)
+    error_message = ""
+
+    if not username:
+        error_message = "Must enter a username"
+    elif len(username) > 20:
+        error_message = "Username must be 20 characters or fewer"
+    elif not username.replace("_", "").replace("-", "").isalnum():
+        error_message = "Username may only contain letters, numbers, hyphens, and underscores"
+
+    elif not password:
+        error_message = "Must enter a password"
+    elif len(password) < 15:
+        error_message = "Password must be 15 characters or longer"
+    elif password != password.strip():
+        error_message = "Password may not use a space as the first or last character"
+
+    if error_message != "":
+        logger.warning(f"User validation failed: {error_message}")
         raise InvalidArgumentException(error_message)
