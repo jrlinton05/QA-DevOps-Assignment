@@ -1,6 +1,6 @@
 [project]
 name = "qa-devops"
-version = "0.1.0"
+version = "1.0.0"
 description = "Simple Web App for Completing the Software Engineering and DevOps Assignment with QA"
 requires-python = ">=3.13"
 dependencies = [
