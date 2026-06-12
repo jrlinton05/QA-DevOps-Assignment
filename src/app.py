@@ -10,6 +10,7 @@ from flask_wtf import CSRFProtect
 from bcrypt import checkpw
 
 import database_wrapper
+from logging_config import logger
 from schemas.constants import ADMIN_ACCESS_ERROR, DATABASE_CONNECTION_ERROR, CHANNEL_CREATION_SUCCESS, \
     CHANNEL_UPDATE_SUCCESS, CHANNEL_DELETE_SUCCESS, ACCOUNT_CREATION_SUCCESS, CHANNEL_NOT_FOUND_ERROR, \
     INVALID_USER_DETAILS_ERROR
@@ -74,6 +75,8 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_admin:
+            logger.warning(f"Unauthorised admin access attempt by user: {current_user.username} "
+                           f"from IP: {request.remote_addr}")
             flash(ADMIN_ACCESS_ERROR, "error")
             return redirect(url_for('channel_browser'))
         return f(*args, **kwargs)
@@ -114,6 +117,7 @@ def create_channel():
     POST: Validate the entered information and create a new channel.
     """
     if request.method == 'POST':
+        logger.info(f"Attempt to create channel by user: {current_user.username} from IP: {request.remote_addr}")
         channel_name = request.form['channel_name']
         channel_price = request.form['channel_price']
 
@@ -140,6 +144,7 @@ def update_channel(channel_id):
     POST: Validate the entered information and update the appropriate channel.
     """
     if request.method == 'POST':
+        logger.info(f"Attempt to update channel by user: {current_user.username} from IP: {request.remote_addr}")
         channel_name = request.form['channel_name']
         channel_price = request.form['channel_price']
 
@@ -167,6 +172,7 @@ def update_channel(channel_id):
 @admin_required
 def delete_channel(channel_id):
     """Routes POST requests towards the database wrapper for deleting channels."""
+    logger.info(f"Attempt to delete channel by user: {current_user.username} from IP: {request.remote_addr}")
     try:
         database_wrapper.delete_channel(channel_id)
         flash(CHANNEL_DELETE_SUCCESS)
@@ -224,8 +230,10 @@ def login():
         if user_data and checkpw(password.encode(), user_data[1].strip().encode()):
             user = User(user_id=user_data[0], username=username, is_admin=user_data[2])
             login_user(user)
+            logger.info(f"Successful login for user: {username} from IP: {request.remote_addr}")
             return redirect(url_for('index'))
 
+        logger.warning(f"Failed login attempt for user: {username} from IP: {request.remote_addr}")
         return render_template('login.html', error=INVALID_USER_DETAILS_ERROR, username=username)
 
     return render_template('login.html')
