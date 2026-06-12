@@ -27,7 +27,7 @@ jobs:
     - name: Check for known vulnerabilities
       run: |
         pip install pip-audit
-        pip-audit
+        pip-audit --local
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
