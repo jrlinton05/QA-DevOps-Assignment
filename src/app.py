@@ -49,9 +49,13 @@ def set_security_headers(response):
     response.headers['X-Frame-Options'] = 'DENY'  # Prevents clickjacking
     response.headers['X-XSS-Protection'] = '1; mode=block'  # Prevents reflected XSS attacks
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'  # Enforces HTTPS
-    response.headers['Content-Security-Policy'] =\
-        ("default-src 'self'; script-src 'self' cdn.jsdelivr.net; style-src 'self' "
-         "cdn.jsdelivr.net fonts.googleapis.com; font-src fonts.gstatic.com")  # Allowlist for necessary loaded content
+    response.headers['Content-Security-Policy'] = \
+        ("default-src 'self'; "
+         "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+         "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; "
+         "font-src fonts.gstatic.com; "
+         "connect-src 'self' cdn.jsdelivr.net; "
+         "img-src 'self'")  # Allowlist for necessary loaded content
     return response
 
 

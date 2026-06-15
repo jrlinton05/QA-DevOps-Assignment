@@ -5,7 +5,7 @@
     <div class="table-header">
         <h2>Channels</h2>
         {% if user.is_admin %}
-            <a href="{{ url_for('create_channel') }}"><button class="create-btn">Create Channel</button></a>
+        <a href="{{ url_for('create_channel') }}" class="create-btn">Create Channel</a>
         {% endif %}
     </div>
     <table class="sortable">
@@ -30,8 +30,8 @@
                     <td data-sort="{{ row[2] }}">£{{ row[2] }}</td>
                 {% endif %}
                 {% if user.is_admin %}
-                    <td class="edit-button-row"><a href="{{ url_for('update_channel', channel_id=row[0]) }}">
-                        <button class="create-btn">Edit Channel</button></a></td>
+                    <td class="edit-button-row"><a href="{{ url_for('update_channel', channel_id=row[0]) }}"
+                        class="create-btn">Edit Channel</a></td>
                 {% endif %}
             </tr>
             {% endfor %}

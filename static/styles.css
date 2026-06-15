@@ -19,6 +19,9 @@
     --footer-text: white;
 
     --info-container: #cbdfff;
+    --form-container: #e0ebff;
+
+    --input-focus: #1853a1;
 
     --table-header: #415A77;
     --table-row-even: #aac1dc;
@@ -26,8 +29,8 @@
     --table-border: white;
     --table-text: white;
 
-    --button-color: #4D86D0;
-    --button-hover: #235894;
+    --create-button-color: #4D86D0;
+    --delete-button-color: #832717;
     --button-text: white;
 
     --flash-alert-background: #E6EECE;
@@ -45,7 +48,10 @@
 
 /* Default Main Content */
 body {
-    background: var(--page-background);
+    background-color: var(--page-background);
+    background-image: url('/static/topography.svg');
+    background-repeat: repeat;
+
     color: var(--page-text);
 
     font-family: "Quicksand", sans-serif;
@@ -68,6 +74,7 @@ body {
 
 main {
     padding: calc(var(--header-height) + 1em) 2em 1em 2em;
+    animation: fadeIn 0.2s ease;
 }
 
 button, input, select, textarea {
@@ -76,11 +83,17 @@ button, input, select, textarea {
     font-weight: inherit;
 }
 
+button:focus, a:focus, input:focus {
+    outline: 2px solid var(--input-focus);
+    outline-offset: 2px;
+}
+
 /* Text */
 h1 {
     color: var(--h1);
     font-size: 2.5rem;
     font-weight: 700;
+    text-align: center;
 }
 
 h2 {
@@ -97,6 +110,10 @@ h3 {
 
 a {
     color: var(--links);
+}
+
+.centred {
+    text-align: center;
 }
 
 /* Flash Alerts */
@@ -170,13 +187,11 @@ a {
     margin-left: 1em;
 }
 
-#header nav ul li a, #header nav ul li span {
-    border: 0;
+#header nav ul li a, #header nav ul li button {
     color: inherit;
     display: inline-block;
-    height: inherit;
-    line-height: inherit;
-    outline: 0;
+    height: 3em;
+    line-height: 3em;
 }
 
 #header nav ul li > ul {
@@ -226,18 +241,38 @@ a {
 
 /* Buttons */
 .create-btn {
-    background: var(--button-color);
+    background: var(--create-button-color);
     color: var(--button-text);
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
-    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
+    transition: background 0.2s ease;
 }
 
 .create-btn:hover {
-    background: var(--button-hover);
+    background: color-mix(in srgb, var(--create-button-color), black 20%);
+}
+
+a.create-btn {
+    text-decoration: none;
+    display: inline-block;
+}
+
+.delete-btn {
+    background: var(--delete-button-color);
+    color: var(--button-text);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: color-mix(in srgb, var(--delete-button-color), black 20%);
 }
 
 .close-btn {
@@ -276,7 +311,7 @@ a {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 10px;
+    padding-bottom: 12px;
 }
 
 .table-header h2 {
@@ -302,20 +337,39 @@ tr:nth-child(even) {
 }
 
 /* Forms */
+.form-container {
+    background: var(--form-container);
+    border-radius: 15px;
+    border-color: color-mix(in srgb, var(--form-container), black 80%);
+    overflow: hidden;
+    padding: 20px;
+    max-width: 800px;
+    margin: 20px auto;
+}
+
 form {
     display: flex;
     flex-direction: column;
     gap: 1em;
-    max-width: 400px;
-    padding-top: 20px;
 }
 
-form .create-btn {
+form + form {
+    margin-top: 1em;
+}
+
+form button {
     font-size: 1.5em;
 }
 
 label {
-    font-size: 1.5em;
+    font-size: 2em;
+}
+
+form input {
+    font-size: 1.2em;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
 }
 
 .form-error {
@@ -326,7 +380,7 @@ label {
 
 /* Misc */
 .error-message {
-    padding: 10px 0;
+    padding: 12px 0;
     font-weight: 600;
     font-size: 1.8em;
     color: var(--flash-error-background);
@@ -339,4 +393,13 @@ label {
     overflow: hidden;
     padding: 20px;
     margin-top: 20px;
+}
+
+.table-container, .form-container, .info-container {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
