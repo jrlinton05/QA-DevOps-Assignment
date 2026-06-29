@@ -384,6 +384,7 @@ form input {
     font-weight: 600;
     font-size: 1.8em;
     color: var(--flash-error-background);
+    text-align: center;
 }
 
 .info-container {

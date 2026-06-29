@@ -13,7 +13,7 @@ import database_wrapper
 from logging_config import logger
 from schemas.constants import ADMIN_ACCESS_ERROR, DATABASE_CONNECTION_ERROR, CHANNEL_CREATION_SUCCESS, \
     CHANNEL_UPDATE_SUCCESS, CHANNEL_DELETE_SUCCESS, ACCOUNT_CREATION_SUCCESS, CHANNEL_NOT_FOUND_ERROR, \
-    INVALID_USER_DETAILS_ERROR
+    INVALID_USER_DETAILS_ERROR, REQUEST_RATE_EXCEEDED_ERROR, PAGE_NOT_FOUND_ERROR
 from schemas.exceptions import NameAlreadyExistsException, InvalidArgumentException, DatabaseConnectionException
 from schemas.types import User
 
@@ -90,13 +90,19 @@ def admin_required(f):
 # --- Error Handling ---
 @app.errorhandler(DatabaseConnectionException)
 def handle_db_error(e):
-    return render_template('error.html', message=DATABASE_CONNECTION_ERROR), 503
+    return render_template('error.html', message=[DATABASE_CONNECTION_ERROR]), 503
 
 
 @app.errorhandler(429)
 def rate_limit_exceeded(e):
     return render_template('error.html',
-                           message="Too many requests. Please try again in a minute."), 429
+                           message=[REQUEST_RATE_EXCEEDED_ERROR]), 429
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('error.html',
+                           message=PAGE_NOT_FOUND_ERROR), 404
 
 
 # --- App Routing ---

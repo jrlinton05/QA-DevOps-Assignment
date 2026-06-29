@@ -50,6 +50,11 @@ TABLE_CREATION_SUCCESS = "Create tables operation executed successfully"
 # Error Messages
 DATABASE_CONNECTION_ERROR = "Unable to connect to database"
 
+REQUEST_RATE_EXCEEDED_ERROR = "Too many requests. Please try again in a minute"
+
+PAGE_NOT_FOUND_ERROR = ["The requested URL does not exist",
+                        "Please use the navigation bar at the top of the screen to return to Telescope"]
+
 ADMIN_ACCESS_ERROR = "Access to this page requires admin permissions"
 
 INVALID_USER_DETAILS_ERROR = "Invalid username or password"
